@@ -1,0 +1,20 @@
+name: amine-co2-uq
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - rdkit
+  - lightgbm
+  - scikit-learn
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
+  - optuna
+  - pip
+  - pip:
+      - ngboost
+      - mapie
+      - chemprop
+      # Quantum extras (PennyLane, qiskit) — add only when Phase 6 (quantum ablation) starts.

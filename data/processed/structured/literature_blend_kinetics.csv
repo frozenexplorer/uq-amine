@@ -1,0 +1,13 @@
+source_document,blend_label,concentration_wt_pct_raw,temperature_K,co2_partial_pressure_kPa,absorption_capacity_mol_co2_per_mol_amine,absorption_rate_mmol_per_mol_s,cyclic_loading_mol_co2_per_mol_amine,notes,source_reference
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MEA/PZ,10/20,313.15,12.0,0.75,1.68,,Strong indication of better performance than 30 wt% MEA; PZ blends limited to 30 wt% total concentration due to precipitation.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MDEA/PZ,10/20,313.15,12.0,0.92,1.52,,Better reactivity at higher PZ levels; structural synergy as tertiary amine acts as base catalyst for PZ.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,AMP/PZ,10/20,313.15,12.0,0.99,1.47,0.48,Highest CO 2 absorption capacity; cyclic loading twice that of 30 wt% MEA benchmark.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MDEA/PZ,15/15,313.15,12.0,0.92,1.2,,Not in source,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MDEA/PZ,20/10,313.15,12.0,0.74,1.04,,Poor reactivity of MDEA observed at lower PZ levels.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MEA/PZ,15/15,313.15,12.0,0.73,1.65,,Not in source,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MEA/PZ,20/10,313.15,12.0,0.69,1.56,,Not in source,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,DEA/PZ,10/20,313.15,12.0,0.88,1.68,,Highest rate among evaluated PZ blends; 30 wt% total basis used to avoid precipitation issues.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,DEA/PZ,15/15,313.15,12.0,0.85,1.53,,Not in source,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,DEA/PZ,20/10,313.15,12.0,0.79,1.28,,Not in source,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,MEA,30,313.15,12.0,0.5,1.09,0.24,Benchmark solvent; high kinetics but high regeneration energy; limited by techno-economic factors.,Source_1
+Performance of MEA_MDEA Blends with AMP and Piperazine.xlsx,PZ,30,313.15,12.0,1.06,1.81,,Highest rate and capacity but prone to precipitation at high concentrations.,Source_1

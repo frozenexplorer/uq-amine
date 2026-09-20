@@ -60,3 +60,36 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 - **Target:** CO₂ loading, mol CO₂/mol PZ
 - **License:** Not specified by the source
 - **Provenance:** Original experimental source represented through NIST ThermoML
+
+---
+
+### Candidate amines — CO2_chemical_solvents (Zenodo, badge 430190456)
+
+- **Status:** `[x]`
+- **Title:** "Design of new chemical solvents for CO2 absorption using a combination of molecular simulations and machine learning"
+- **DOI:** Zenodo badge 430190456 — exact DOI/author list not yet confirmed; verify at zenodo.org before citing in any writeup.
+- **Local copy:** `our data/Amine_Earlier work/CO2_chemical_solvents-main/` (NOT copied into `data/raw/` — repo is ~500MB with 193x duplicated ISIDA-fragment-descriptor files; the ingestion script reads directly from `our data/`, which is gitignored)
+- **Ingestion:** `src/data/ingest_co2_chemical_solvents.py`
+- **Outputs:**
+  - `data/processed/structured/candidate_amines_learning_set.csv` — 124 unique amines, MD-computed `CompRate_ylog` (kinetics — out of scope per BACKLOG.md, kept for completeness) and `dG_MD_ylog` (CO2 binding free energy — relevant to regeneration energy), plus 33 OPERA physicochemical descriptors (SMILES-derived: MolWeight, LogP, pKa, BP, etc.)
+  - `data/processed/structured/candidate_amines_screening_library.csv` — 945 candidate amines with the same OPERA descriptors, plus the repo's own RF-ensemble predictions for CompRate/dG (`comprate_avg_pred`, `dg_avg_pred`) and my own ensemble-std columns (`comprate_rf_ensemble_std`, `dg_rf_ensemble_std`) as a ready-made epistemic-uncertainty signal. 124 of the 945 rows carry real ground truth (`RMD`, `dGMD`) — sourced from `100MDamines` (100 rows) and `Chowdhury` (24 rows, matches `chowdhury-et-al-2013...pdf` in the same data dump).
+- **Why this matters:** fixes the chemical-diversity gap (3 amines → hundreds) for candidate screening; the ensemble-std columns double as a UQ baseline to compare our own conformal intervals against.
+
+### Simulated blends — BlendCO2 in-house equilibrium solver
+
+- **Status:** `[x]` (data type: **simulated, not experimental**)
+- **Local copy:** `our data/Amine_Earlier work/BlendCO2 3/BlendCO2/all_blends_ranked.csv`
+- **Ingestion:** `src/data/ingest_blendco2_simulation.py`
+- **Output:** `data/processed/structured/blendco2_simulated_blends.csv` — 176 single/binary/ternary MEA/MDEA/AMP/PZ blend compositions ranked by `cyclic_capacity` and cost.
+- **Caveat:** the solver's physics module (`equilibrium_solver.py`) is missing from both local copies of this project — only a compiled `.pyc` remains — so its assumptions are currently unauditable. Every row carries a `data_type=simulated` tag; do not merge into the same UQ-calibration pool as real experimental measurements without preserving that tag.
+
+### Literature blend performance — NotebookLM-extracted tables
+
+- **Status:** `[~]` (extracted by an AI summarization tool from PDFs, not hand-transcribed — needs verification against source PDFs before being trusted as ground truth)
+- **Sources (see `References_Amine/` next to the originals):** 2026_Wang (ternary amine blends), 2025_Gupta (novel CO2 capture blend), 2025_Liang (bicarbonate pathways in blends), an AEP/DMEA thermodynamic-modeling paper, and an unlabeled "Source_1" behind the MEA/MDEA/AMP/PZ kinetics table.
+- **Local copies:** three `.xlsx` + one `.docx` under `our data/Amine_Earlier work/Amine Blends_Computations_NotebookLM/`
+- **Ingestion:** `src/data/ingest_literature_blend_performance.py`
+- **Outputs:**
+  - `data/processed/structured/literature_blend_performance.csv` — 109 rows, tidy long format (`blend_label, metric, value, value_min, value_max, raw_text, source_reference`). Left in long format deliberately: source units are heterogeneous (mol/mol vs mol/kg vs mol/L vs GJ/t CO2 vs kJ/mol) and converting them would require density/molar-mass assumptions not given in the sources.
+  - `data/processed/structured/literature_blend_kinetics.csv` — 12 rows, MEA/MDEA/AMP/PZ/DEA blend absorption **rate** data (kinetics — out of scope per BACKLOG.md, kept separate rather than silently mixed into the performance table).
+- **First real regeneration-energy data in this project** (`Heat of Absorption`, `Regeneration Efficiency`, `Regeneration Heat Duty (GJ/t CO2)` metrics) — previously zero rows existed for this target.

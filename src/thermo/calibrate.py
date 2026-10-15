@@ -1,10 +1,13 @@
 """
 Calibrate the equilibrium model against experimental VLE (pCO2 vs loading) data.
 
+    MEA  <- Wagner et al. (2013)             (NIST ThermoML, pCO2 <= 2000 kPa)
+    MDEA <- Leontiadis et al. (2019), Dey et al. (2018)   (NIST ThermoML; 298-333 K only)
     AMP  <- Hartono et al. (2020)            (rows with a measured CO2 partial pressure)
     PZ   <- Ermatchkov et al. (2006)
     AMP+PZ blend <- Dash et al. (2011)       HELD OUT: never used for fitting; it tests
                                              whether single-amine parameters predict blends
+    MDEA heat of absorption <- Arcis et al. (2008)   HELD OUT (calorimetry)
 
 Fitting is MAP (prior-regularised least squares): residuals on loading scaled by an
 observation sigma, plus (theta - prior) / prior_sigma terms, so data-poor parameters
@@ -38,8 +41,9 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import least_squares
 
-from .chemistry import AmineModel, core_amines
-from .equilibrium import compile_batch, sample_batch, solve
+from .chemistry import CORE_NAMES, MW_WATER, AmineModel, core_amines, water_vapor_pressure_kpa
+from .equilibrium import (compile_batch, heat_of_absorption, pco2_at_loading, sample_batch,
+                          solve)
 
 ROOT = Path(__file__).resolve().parents[2]
 STRUCT = ROOT / "data" / "processed" / "structured"
@@ -49,6 +53,7 @@ PARAMS_JSON = OUT_DIR / "calibrated_core_amines.json"
 
 SIGMA_ABS = 0.02   # loading observation noise, mol CO2 / mol amine
 SIGMA_REL = 0.03
+MAX_PCO2 = 2000.0  # kPa, upper limit of calibration data (ideal-solution model)
 
 
 def wt_to_molality(w_pct, mw, total_wt_pct):
@@ -91,21 +96,34 @@ def load_data() -> dict:
         "loading": d["loading_molCO2_per_molamine"].astype(float),
         "label": [f"{a:g}/{z:g} wt% AMP/PZ" for a, z in zip(d["amp_wt_pct"], d["pz_wt_pct"])],
     })
-    for df in (amp, pz, blend):
+    # MEA (Wagner 2013) and MDEA (Leontiadis 2019, Dey 2018) from NIST ThermoML,
+    # see src/data/ingest_thermoml_mea_mdea.py. Capped at MAX_PCO2 like the other sets:
+    # the ideal-solution model is not meant for multi-MPa CO2.
+    t = pd.read_csv(ROOT / "data" / "interim" / "mea_mdea_vle_thermoml.csv")
+    t = t[t["pCO2_kPa"] <= MAX_PCO2]
+    single = {}
+    for amine in ("MEA", "MDEA"):
+        g = t[t["amine"] == amine]
+        single[amine] = pd.DataFrame({
+            "T": g["T"].astype(float),
+            "p": g["pCO2_kPa"].astype(float),
+            f"m_{amine}": g["m_amine"].astype(float),
+            "loading": g["loading"].astype(float),
+            "label": [f"{s.split(' et')[0]} {m:.1f} m" for s, m in zip(g["source"], g["m_amine"])],
+        })
+
+    out = {"MEA": single["MEA"], "MDEA": single["MDEA"], "AMP": amp, "PZ": pz, "AMP+PZ": blend}
+    for df in out.values():
+        for n in CORE_NAMES:
+            if f"m_{n}" not in df:
+                df[f"m_{n}"] = 0.0
         df.reset_index(drop=True, inplace=True)
-    return {"AMP": amp, "PZ": pz, "AMP+PZ": blend}
+    return out
 
 
 def _mixtures(df: pd.DataFrame, models: dict):
-    out = []
-    for a, z in zip(df["m_AMP"], df["m_PZ"]):
-        mix = []
-        if a > 0:
-            mix.append((models["AMP"], a))
-        if z > 0:
-            mix.append((models["PZ"], z))
-        out.append(mix)
-    return out
+    cols = [(n, df[f"m_{n}"].to_numpy()) for n in CORE_NAMES]
+    return [[(models[n], m[i]) for n, m in cols if m[i] > 0] for i in range(len(df))]
 
 
 def predict_loading(df: pd.DataFrame, models: dict) -> np.ndarray:
@@ -117,6 +135,9 @@ def predict_loading(df: pd.DataFrame, models: dict) -> np.ndarray:
 # Parameterisation: which species constants are free for each amine
 # ---------------------------------------------------------------------------
 FREE = {
+    "MEA": [("MEAH+", "logK25"), ("MEAH+", "dH"), ("MEACOO-", "logK25"), ("MEACOO-", "dH")],
+    # MDEA data stop at 333 K, so dH is constrained mostly by its (well-established) prior
+    "MDEA": [("MDEAH+", "logK25"), ("MDEAH+", "dH")],
     "AMP": [("AMPH+", "logK25"), ("AMPH+", "dH"), ("AMPCOO-", "logK25"), ("AMPCOO-", "dH")],
     "PZ": [("PZH+", "logK25"), ("PZH+", "dH"), ("PZCOO-", "logK25"), ("PZCOO-", "dH"),
            ("H+PZCOO-", "logK25"), ("H+PZCOO-", "dH"), ("PZ(COO-)2", "logK25"),
@@ -125,6 +146,12 @@ FREE = {
 # Prior sigma used for regularisation (looser than the MC sd of the literature prior;
 # apparent KE constants legitimately drift from thermodynamic values).
 PRIOR_SIGMA = {"logK25": 0.6, "dH": 12.0}
+# Per-parameter overrides. MDEA protonation enthalpy: the MDEA VLE data only span
+# 298-333 K, and with the loose 12 kJ/mol prior the fit drifted to -48.5 kJ/mol, which made
+# the held-out calorimetry (Arcis 2008) WORSE (MAE 6.2 kJ/mol). A literature-grade prior
+# (-34.9 +/- 3, calorimetric value) leaves the loading fit unchanged (MAE 0.029 vs 0.030)
+# and brings the heat of absorption to MAE 1.4 kJ/mol -- consistent with both datasets.
+PRIOR_SIGMA_OVERRIDE = {("MDEA", "MDEAH+", "dH"): 3.0}
 
 
 def _get(model: AmineModel, sp_name: str, field: str) -> float:
@@ -143,7 +170,7 @@ def fit_amine(name: str, df: pd.DataFrame, models: dict) -> tuple:
     base = models[name]
     keys = FREE[name]
     theta0 = np.array([_get(base, n, f) for n, f in keys])
-    psig = np.array([PRIOR_SIGMA[f] for _, f in keys])
+    psig = np.array([PRIOR_SIGMA_OVERRIDE.get((name, n, f), PRIOR_SIGMA[f]) for n, f in keys])
     obs = df["loading"].to_numpy()
     sig = SIGMA_ABS + SIGMA_REL * obs
 
@@ -222,6 +249,36 @@ def cqr(df, lo, hi, alpha=0.10):
 
 
 # ---------------------------------------------------------------------------
+# Heat-of-absorption validation (MDEA, Arcis et al. 2008 flow calorimetry)
+# ---------------------------------------------------------------------------
+def enthalpy_validation(models: dict, n_grid: int = 12) -> pd.DataFrame:
+    """
+    Arcis et al. report the INTEGRAL enthalpy of solution per mol of CO2 fed at 322.5 K.
+    All ThermoML points lie at or beyond saturation, where extra CO2 stays in the gas and
+    adds ~no heat, so the measured value is  dh_int(a_sat) * a_sat / a_fed.  The model
+    gives a_sat at pCO2 = P - x_w p_sat,H2O and dh_int by integrating its differential
+    heat (Gibbs-Helmholtz) over loading 0 -> a_sat. Never used for fitting.
+    """
+    h = pd.read_csv(ROOT / "data" / "interim" / "mdea_enthalpy_arcis2008.csv")
+    T = h["T"].to_numpy()
+    m = h["m_amine"].to_numpy()
+    x_w = (1000 / MW_WATER) / (1000 / MW_WATER + m)
+    p_sat = h["P_kPa"].to_numpy() - x_w * water_vapor_pressure_kpa(T)
+    b = compile_batch([[(models["MDEA"], mi)] for mi in m])
+    n_sat = solve(b, T, p_sat)["n_co2"]
+    frac = (np.arange(n_grid) + 0.5) / n_grid
+    bb = b.repeat(n_grid)
+    Tg = np.repeat(T, n_grid)
+    n_target = (n_sat[:, None] * frac[None, :]).ravel()
+    p_grid = pco2_at_loading(bb, Tg, n_target)
+    dh = heat_of_absorption(bb, Tg, p_grid).reshape(len(h), n_grid)
+    dh_int = dh.mean(axis=1)
+    a_sat = n_sat / m
+    pred = -dh_int * np.minimum(1.0, a_sat / h["loading"].to_numpy())
+    return h.assign(model_dH=pred, model_loading_sat=a_sat)
+
+
+# ---------------------------------------------------------------------------
 # Figures
 # ---------------------------------------------------------------------------
 def parity_plot(ax, df, pred, title, lo=None, hi=None):
@@ -255,7 +312,7 @@ def main():
     models = dict(prior)
     report = {}
     fitted_pred = {}
-    for name in ("AMP", "PZ"):
+    for name in CORE_NAMES:
         fitted, stats, pred = fit_amine(name, data[name], models)
         models[name] = fitted
         report[name] = stats
@@ -289,6 +346,21 @@ def main():
           f"90% coverage param-only {cov1:.2f}; CQR margin {q_hat:.3f} -> "
           f"leave-group-out coverage {hb['coverage90_cqr_leave_group_out_mean']:.2f} {logo}")
 
+    # held-out heat of absorption (MDEA)
+    h_prior = enthalpy_validation(prior)
+    h_fit = enthalpy_validation(models)
+    obs_h = h_fit["dH_solution_kj_per_mol"].to_numpy()
+    report["MDEA_enthalpy_heldout"] = {
+        "n_points": len(h_fit),
+        "mae_kj_per_mol_prior": float(np.mean(np.abs(h_prior["model_dH"] - obs_h))),
+        "mae_kj_per_mol_calibrated": float(np.mean(np.abs(h_fit["model_dH"] - obs_h))),
+        "bias_kj_per_mol_calibrated": float(np.mean(h_fit["model_dH"] - obs_h)),
+    }
+    he = report["MDEA_enthalpy_heldout"]
+    print(f"MDEA heat of absorption held-out (Arcis 2008, n={he['n_points']}): MAE prior "
+          f"{he['mae_kj_per_mol_prior']:.1f} -> calibrated {he['mae_kj_per_mol_calibrated']:.1f} kJ/mol "
+          f"(bias {he['bias_kj_per_mol_calibrated']:+.1f})")
+
     # save parameters
     payload = {"loading_discrepancy_q90": q_hat, "fit_report": report, "amines": {}}
     for name, mdl in models.items():
@@ -300,18 +372,33 @@ def main():
     print("saved", PARAMS_JSON.relative_to(ROOT))
 
     # figures
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
-    parity_plot(axes[0], data["AMP"], fitted_pred["AMP"], "AMP (Hartono 2020) - fitted")
-    parity_plot(axes[1], data["PZ"], fitted_pred["PZ"], "PZ (Ermatchkov 2006) - fitted")
-    parity_plot(axes[2], blend, nominal,
+    titles = {"MEA": "MEA (Wagner 2013) - fitted", "MDEA": "MDEA (Leontiadis 2019, Dey 2018) - fitted",
+              "AMP": "AMP (Hartono 2020) - fitted", "PZ": "PZ (Ermatchkov 2006) - fitted"}
+    fig, axes = plt.subplots(2, 3, figsize=(15, 9.6))
+    for ax, name in zip(axes.flat, CORE_NAMES):
+        parity_plot(ax, data[name], fitted_pred[name], titles[name])
+    parity_plot(axes.flat[4], blend, nominal,
                 f"AMP+PZ (Dash 2011) - HELD OUT, 90% CQR bands (+/-{q_hat:.3f})", lo_i, hi_i)
+    ax = axes.flat[5]
+    for (w, color) in zip(sorted(h_fit["w_amine"].unique()), ("#2a78d6", "#eb6834")):
+        g = h_fit[h_fit["w_amine"] == w]
+        ax.plot(g["loading"], -g["dH_solution_kj_per_mol"], "o", ms=5, color=color,
+                label=f"measured, {w:.0%} MDEA")
+        for i, (P, gp) in enumerate(g.groupby("P_kPa")):
+            gp = gp.sort_values("loading")
+            ax.plot(gp["loading"], -gp["model_dH"], "-", lw=1.2, color=color, alpha=0.8,
+                    label=f"model, {w:.0%} MDEA (one line per pressure)" if i == 0 else None)
+    ax.set_xlabel("CO$_2$ fed (mol / mol MDEA)")
+    ax.set_ylabel("-$\\Delta H_{solution}$ (kJ / mol CO$_2$ fed)")
+    ax.set_title(f"MDEA heat of absorption (Arcis 2008, 322.5 K) - HELD OUT\n"
+                 f"MAE {he['mae_kj_per_mol_calibrated']:.1f} kJ/mol", fontsize=10)
+    ax.legend(fontsize=7, frameon=False)
     fig.tight_layout()
     fig.savefig(FIG_DIR / "parity_calibration.png", dpi=160)
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
-    parity_plot(axes[0], data["AMP"], prior_pred["AMP"], "AMP - literature priors only")
-    parity_plot(axes[1], data["PZ"], prior_pred["PZ"], "PZ - literature priors only")
-    parity_plot(axes[2], blend, prior_pred["AMP+PZ"], "AMP+PZ - literature priors only")
+    fig, axes = plt.subplots(1, 5, figsize=(24, 4.8))
+    for ax, name in zip(axes, list(CORE_NAMES) + ["AMP+PZ"]):
+        parity_plot(ax, data[name], prior_pred[name], f"{name} - literature priors only")
     fig.tight_layout()
     fig.savefig(FIG_DIR / "parity_priors_only.png", dpi=160)
     print("figures ->", FIG_DIR.relative_to(ROOT))

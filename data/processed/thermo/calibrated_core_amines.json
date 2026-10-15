@@ -1,6 +1,52 @@
 {
   "loading_discrepancy_q90": 0.06711845246959691,
   "fit_report": {
+    "MEA": {
+      "n_points": 98,
+      "chi2_reduced": 0.3255024110729961,
+      "mae_loading": 0.015533894287530242,
+      "aard_pct": 4.3983157514864955,
+      "params": {
+        "MEAH+.logK25": {
+          "prior": 9.5,
+          "fit": 10.148411807802626,
+          "sd": 0.09217417077633566
+        },
+        "MEAH+.dH": {
+          "prior": -50.5,
+          "fit": -49.916872328951726,
+          "sd": 2.699309780754434
+        },
+        "MEACOO-.logK25": {
+          "prior": 1.5,
+          "fit": 1.4600635869867675,
+          "sd": 0.10954257869981746
+        },
+        "MEACOO-.dH": {
+          "prior": -23.0,
+          "fit": -22.94727728877655,
+          "sd": 3.2768940327734533
+        }
+      }
+    },
+    "MDEA": {
+      "n_points": 81,
+      "chi2_reduced": 1.1727050066843967,
+      "mae_loading": 0.0285535940125059,
+      "aard_pct": 4.37454240943123,
+      "params": {
+        "MDEAH+.logK25": {
+          "prior": 8.56,
+          "fit": 9.19078993747465,
+          "sd": 0.038929786170600264
+        },
+        "MDEAH+.dH": {
+          "prior": -34.9,
+          "fit": -39.997143325630226,
+          "sd": 2.5929338301169658
+        }
+      }
+    },
     "AMP": {
       "n_points": 110,
       "chi2_reduced": 2.0442462880807875,
@@ -91,14 +137,20 @@
         "28/2 wt% AMP/PZ": 0.8518518518518519
       },
       "coverage90_cqr_leave_group_out_mean": 0.9249762583095916
+    },
+    "MDEA_enthalpy_heldout": {
+      "n_points": 32,
+      "mae_kj_per_mol_prior": 5.237558086301396,
+      "mae_kj_per_mol_calibrated": 1.4217891217950667,
+      "bias_kj_per_mol_calibrated": -0.8414486768304983
     }
   },
   "amines": {
     "MEA": {
       "smiles": "NCCO",
       "mw": 61.08,
-      "source": "literature",
-      "note": "literature priors; no pCO2-loading data in repo yet",
+      "source": "calibrated",
+      "note": "MAP fit to 98 pCO2-loading points",
       "species": [
         {
           "name": "MEA",
@@ -113,27 +165,27 @@
           "name": "MEAH+",
           "h": 1,
           "c": 0,
-          "logK25": 9.5,
-          "dH": -50.5,
-          "sd_logK": 0.15,
-          "sd_dH": 3.0
+          "logK25": 10.148411807802626,
+          "dH": -49.916872328951726,
+          "sd_logK": 0.09217417077633566,
+          "sd_dH": 2.699309780754434
         },
         {
           "name": "MEACOO-",
           "h": 0,
           "c": 1,
-          "logK25": 1.5,
-          "dH": -23.0,
-          "sd_logK": 0.35,
-          "sd_dH": 8.0
+          "logK25": 1.4600635869867675,
+          "dH": -22.94727728877655,
+          "sd_logK": 0.10954257869981746,
+          "sd_dH": 3.2768940327734533
         }
       ]
     },
     "MDEA": {
       "smiles": "CN(CCO)CCO",
       "mw": 119.16,
-      "source": "literature",
-      "note": "literature priors; no pCO2-loading data in repo yet",
+      "source": "calibrated",
+      "note": "MAP fit to 81 pCO2-loading points",
       "species": [
         {
           "name": "MDEA",
@@ -148,10 +200,10 @@
           "name": "MDEAH+",
           "h": 1,
           "c": 0,
-          "logK25": 8.56,
-          "dH": -34.9,
-          "sd_logK": 0.15,
-          "sd_dH": 3.0
+          "logK25": 9.19078993747465,
+          "dH": -39.997143325630226,
+          "sd_logK": 0.038929786170600264,
+          "sd_dH": 2.5929338301169658
         }
       ]
     },

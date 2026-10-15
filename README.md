@@ -53,14 +53,17 @@ python run_all.py
 
 ## Results
 
-| Target | Model | Split | MAE (mol CO₂/mol amine) | Coverage (90% PI) |
+| Target | Model | Split | MAE | Coverage (90% PI) |
 |---|---|---|---|---|
-| CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 | – |
-| CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 | – |
-| CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 | 0.30 parameter-only → **0.92** with conformal margin |
+| CO₂ loading, MEA | calibrated equilibrium | fit (Wagner 2013, 98 pts) | 0.016 mol/mol | – |
+| CO₂ loading, MDEA | calibrated equilibrium | fit (Leontiadis 2019 + Dey 2018, 81 pts) | 0.029 mol/mol | – |
+| CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 mol/mol | – |
+| CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 mol/mol | – |
+| CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 mol/mol | 0.30 parameter-only → **0.92** with conformal margin |
+| Heat of absorption, MDEA | calibrated equilibrium | **held out** (Arcis 2008 calorimetry, 32 pts) | 1.4 kJ/mol | – |
 
-Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 5% + PZ 25%.
-No mixture yet beats MEA at its 90% lower bound — MEA/MDEA calibration data is the main missing piece.
+Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 2.5% + PZ 27.5%.
+No mixture yet beats MEA at its conservative 90% lower bound (the blend-discrepancy margin dominates).
 
 ## Neo4j
 

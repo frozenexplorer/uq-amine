@@ -80,3 +80,5 @@ our data/
 *.tmp
 *.temp
 *.bak
+# Checkpoint reports for the supervisor: kept local, never pushed
+reports/checkpoint_*.docx

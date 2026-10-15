@@ -3,6 +3,7 @@
   "fit_report": {
     "MEA": {
       "n_points": 98,
+      "n_other_observations": 0,
       "chi2_reduced": 0.3255024110729961,
       "mae_loading": 0.015533894287530242,
       "aard_pct": 4.3983157514864955,
@@ -29,26 +30,9 @@
         }
       }
     },
-    "MDEA": {
-      "n_points": 81,
-      "chi2_reduced": 1.1727050066843967,
-      "mae_loading": 0.0285535940125059,
-      "aard_pct": 4.37454240943123,
-      "params": {
-        "MDEAH+.logK25": {
-          "prior": 8.56,
-          "fit": 9.19078993747465,
-          "sd": 0.038929786170600264
-        },
-        "MDEAH+.dH": {
-          "prior": -34.9,
-          "fit": -39.997143325630226,
-          "sd": 2.5929338301169658
-        }
-      }
-    },
     "AMP": {
       "n_points": 110,
+      "n_other_observations": 0,
       "chi2_reduced": 2.0442462880807875,
       "mae_loading": 0.02820783517302997,
       "aard_pct": 16.97220706866818,
@@ -77,6 +61,7 @@
     },
     "PZ": {
       "n_points": 52,
+      "n_other_observations": 0,
       "chi2_reduced": 0.09762487544192142,
       "mae_loading": 0.007908490596505,
       "aard_pct": 2.45857838723143,
@@ -123,6 +108,31 @@
         }
       }
     },
+    "MDEA": {
+      "n_points": 112,
+      "n_other_observations": 32,
+      "chi2_reduced": 1.4234932092018158,
+      "mae_loading": 0.03101029938754207,
+      "aard_pct": 6.239823570644448,
+      "params": {
+        "MDEAH+.logK25": {
+          "prior": 8.56,
+          "fit": 9.42707169054633,
+          "sd": 0.042755434575377074
+        },
+        "MDEAH+.dH": {
+          "prior": -34.9,
+          "fit": -39.862873405121114,
+          "sd": 0.6359883999085758
+        },
+        "MDEAH+.b_conc": {
+          "prior": 0.0,
+          "fit": -0.09551276550553739,
+          "sd": 0.01099239995156928
+        }
+      },
+      "model_form_sd_b_conc": 0.047756382752768695
+    },
     "AMP+PZ_heldout": {
       "n_points": 158,
       "mae_loading_prior": 0.10044610161368175,
@@ -138,12 +148,167 @@
       },
       "coverage90_cqr_leave_group_out_mean": 0.9249762583095916
     },
-    "MDEA_enthalpy_heldout": {
+    "MDEA+PZ_Xu2011": {
+      "n_points": 31,
+      "mae_loading_per_alkalinity": 0.014634569818000464,
+      "bias_loading_per_alkalinity": 0.013847305264692076,
+      "coverage90_param_only": 0.967741935483871,
+      "coverage90_with_AMP_PZ_margin": 1.0,
+      "by_blend": {
+        "7 m MDEA / 2 m PZ": {
+          "n": 18,
+          "mae_loading_per_alkalinity": 0.015821732786357012,
+          "coverage90_with_margin": 1.0
+        },
+        "5 m MDEA / 5 m PZ": {
+          "n": 13,
+          "mae_loading_per_alkalinity": 0.012990805707968315,
+          "coverage90_with_margin": 1.0
+        }
+      },
+      "leave_one_blend_out": {
+        "7 m MDEA / 2 m PZ": {
+          "n": 18,
+          "mae_loading_per_alkalinity": 0.03670360967512626,
+          "bias_loading_per_alkalinity": 0.03670360967512626
+        },
+        "5 m MDEA / 5 m PZ": {
+          "n": 13,
+          "mae_loading_per_alkalinity": 0.014285134207499923,
+          "bias_loading_per_alkalinity": 0.014108327318396386
+        }
+      }
+    },
+    "MDEA_enthalpy_Arcis2008": {
       "n_points": 32,
+      "used_in_fit": true,
       "mae_kj_per_mol_prior": 5.237558086301396,
-      "mae_kj_per_mol_calibrated": 1.4217891217950667,
-      "bias_kj_per_mol_calibrated": -0.8414486768304983
-    }
+      "mae_kj_per_mol_calibrated": 1.6602304476256755,
+      "bias_kj_per_mol_calibrated": -0.653194617137194
+    },
+    "capacity_benchmark_Xu2011": {
+      "definition": "40 C, PCO2* 0.5 -> 5 kPa, mol CO2/kg(amine+water)",
+      "literature_priors": [
+        {
+          "solvent": "7 m MEA",
+          "model": 0.47961361275136055,
+          "xu_2011": 0.5,
+          "model_vs_MEA": 1.0,
+          "xu_vs_MEA": 1.0
+        },
+        {
+          "solvent": "8 m PZ",
+          "model": 1.0601832191563252,
+          "xu_2011": 0.85,
+          "model_vs_MEA": 2.2104944292019946,
+          "xu_vs_MEA": 1.7
+        },
+        {
+          "solvent": "7 m MDEA / 2 m PZ",
+          "model": 0.5133901723240624,
+          "xu_2011": 0.84,
+          "model_vs_MEA": 1.0704245223127395,
+          "xu_vs_MEA": 1.68
+        },
+        {
+          "solvent": "5 m MDEA / 5 m PZ",
+          "model": 0.8178879673906,
+          "xu_2011": 0.98,
+          "model_vs_MEA": 1.7053059914181508,
+          "xu_vs_MEA": 1.96
+        }
+      ],
+      "before_mdea_blend_fit": [
+        {
+          "solvent": "7 m MEA",
+          "model": 0.361031635595789,
+          "xu_2011": 0.5,
+          "model_vs_MEA": 1.0,
+          "xu_vs_MEA": 1.0
+        },
+        {
+          "solvent": "8 m PZ",
+          "model": 0.8382368824522552,
+          "xu_2011": 0.85,
+          "model_vs_MEA": 2.321782358681568,
+          "xu_vs_MEA": 1.7
+        },
+        {
+          "solvent": "7 m MDEA / 2 m PZ",
+          "model": 0.5193513978426715,
+          "xu_2011": 0.84,
+          "model_vs_MEA": 1.4385204692259637,
+          "xu_vs_MEA": 1.68
+        },
+        {
+          "solvent": "5 m MDEA / 5 m PZ",
+          "model": 0.7464969782416286,
+          "xu_2011": 0.98,
+          "model_vs_MEA": 2.067677468235517,
+          "xu_vs_MEA": 1.96
+        }
+      ],
+      "calibrated": [
+        {
+          "solvent": "7 m MEA",
+          "model": 0.361031635595789,
+          "xu_2011": 0.5,
+          "model_vs_MEA": 1.0,
+          "xu_vs_MEA": 1.0
+        },
+        {
+          "solvent": "8 m PZ",
+          "model": 0.8382368824522552,
+          "xu_2011": 0.85,
+          "model_vs_MEA": 2.321782358681568,
+          "xu_vs_MEA": 1.7
+        },
+        {
+          "solvent": "7 m MDEA / 2 m PZ",
+          "model": 0.5087667652452954,
+          "xu_2011": 0.84,
+          "model_vs_MEA": 1.409202726530344,
+          "xu_vs_MEA": 1.68
+        },
+        {
+          "solvent": "5 m MDEA / 5 m PZ",
+          "model": 0.7034847006000614,
+          "xu_2011": 0.98,
+          "model_vs_MEA": 1.9485403251134559,
+          "xu_vs_MEA": 1.96
+        }
+      ]
+    },
+    "heat_benchmark_Xu2011": [
+      {
+        "solvent": "7 m MEA",
+        "xu_2011": 72.0,
+        "model_40C": 74.96672172267901,
+        "model_80C": 76.26857140936026,
+        "model_120C": 73.32452030494285
+      },
+      {
+        "solvent": "8 m PZ",
+        "xu_2011": 67.0,
+        "model_40C": 59.790648227227564,
+        "model_80C": 67.55760297408881,
+        "model_120C": 72.70929977873746
+      },
+      {
+        "solvent": "7 m MDEA / 2 m PZ",
+        "xu_2011": 72.3,
+        "model_40C": 62.39184237241486,
+        "model_80C": 67.32776000198636,
+        "model_120C": 69.85237170507233
+      },
+      {
+        "solvent": "5 m MDEA / 5 m PZ",
+        "xu_2011": 69.0,
+        "model_40C": 62.07987763470251,
+        "model_80C": 68.24289281328062,
+        "model_120C": 72.09514862825229
+      }
+    ]
   },
   "amines": {
     "MEA": {
@@ -159,7 +324,11 @@
           "logK25": 0.0,
           "dH": 0.0,
           "sd_logK": 0.0,
-          "sd_dH": 0.0
+          "sd_dH": 0.0,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "MEAH+",
@@ -168,7 +337,11 @@
           "logK25": 10.148411807802626,
           "dH": -49.916872328951726,
           "sd_logK": 0.09217417077633566,
-          "sd_dH": 2.699309780754434
+          "sd_dH": 2.699309780754434,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "MEACOO-",
@@ -177,7 +350,11 @@
           "logK25": 1.4600635869867675,
           "dH": -22.94727728877655,
           "sd_logK": 0.10954257869981746,
-          "sd_dH": 3.2768940327734533
+          "sd_dH": 3.2768940327734533,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         }
       ]
     },
@@ -185,7 +362,7 @@
       "smiles": "CN(CCO)CCO",
       "mw": 119.16,
       "source": "calibrated",
-      "note": "MAP fit to 81 pCO2-loading points",
+      "note": "MAP fit to 112 pCO2-loading points + 32 other observations",
       "species": [
         {
           "name": "MDEA",
@@ -194,16 +371,24 @@
           "logK25": 0.0,
           "dH": 0.0,
           "sd_logK": 0.0,
-          "sd_dH": 0.0
+          "sd_dH": 0.0,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "MDEAH+",
           "h": 1,
           "c": 0,
-          "logK25": 9.19078993747465,
-          "dH": -39.997143325630226,
-          "sd_logK": 0.038929786170600264,
-          "sd_dH": 2.5929338301169658
+          "logK25": 9.42707169054633,
+          "dH": -39.862873405121114,
+          "sd_logK": 0.042755434575377074,
+          "sd_dH": 0.6359883999085758,
+          "dCp": 0.0,
+          "b_conc": -0.09551276550553739,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.047756382752768695
         }
       ]
     },
@@ -220,7 +405,11 @@
           "logK25": 0.0,
           "dH": 0.0,
           "sd_logK": 0.0,
-          "sd_dH": 0.0
+          "sd_dH": 0.0,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "AMPH+",
@@ -229,7 +418,11 @@
           "logK25": 10.107163608548236,
           "dH": -61.11871049880296,
           "sd_logK": 0.04495765731715293,
-          "sd_dH": 2.6080753876215303
+          "sd_dH": 2.6080753876215303,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "AMPCOO-",
@@ -238,7 +431,11 @@
           "logK25": -1.5543643031001353,
           "dH": -18.314487629365544,
           "sd_logK": 0.738204559233712,
-          "sd_dH": 16.981053448218525
+          "sd_dH": 16.981053448218525,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         }
       ]
     },
@@ -255,7 +452,11 @@
           "logK25": 0.0,
           "dH": 0.0,
           "sd_logK": 0.0,
-          "sd_dH": 0.0
+          "sd_dH": 0.0,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "PZH+",
@@ -264,7 +465,11 @@
           "logK25": 10.037018596645453,
           "dH": -44.49412060223015,
           "sd_logK": 0.27603578115886895,
-          "sd_dH": 5.978591970550131
+          "sd_dH": 5.978591970550131,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "PZH2++",
@@ -273,7 +478,11 @@
           "logK25": 15.08,
           "dH": -74.0,
           "sd_logK": 0.25,
-          "sd_dH": 5.0
+          "sd_dH": 5.0,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "PZCOO-",
@@ -282,7 +491,11 @@
           "logK25": 1.3386035952716697,
           "dH": -26.758985823774694,
           "sd_logK": 0.3511040968354174,
-          "sd_dH": 9.478122999130642
+          "sd_dH": 9.478122999130642,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "H+PZCOO-",
@@ -291,7 +504,11 @@
           "logK25": 10.905820427179819,
           "dH": -54.6567557244956,
           "sd_logK": 0.12157012109999868,
-          "sd_dH": 4.146990264379449
+          "sd_dH": 4.146990264379449,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         },
         {
           "name": "PZ(COO-)2",
@@ -300,7 +517,11 @@
           "logK25": 2.2685857268202776,
           "dH": -33.28954834479613,
           "sd_logK": 0.3821993412253072,
-          "sd_dH": 10.489875764159512
+          "sd_dH": 10.489875764159512,
+          "dCp": 0.0,
+          "b_conc": 0.0,
+          "sd_dCp": 0.0,
+          "sd_b_conc": 0.0
         }
       ]
     }

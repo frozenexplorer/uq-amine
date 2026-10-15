@@ -40,6 +40,15 @@ class Batch:
     amine_names: List[str]
     m_amine_total: np.ndarray  # (N,) total moles of amine molecules per kg water
     solvent_kg_per_kg_water: np.ndarray  # (N,) mass of unloaded solvent per kg water
+    dCp: np.ndarray = None     # (N, J, S) optional heat-capacity term, kJ/(mol K)
+    b_conc: np.ndarray = None  # (N, J, S) optional concentration term, log10 K per mol/kg
+    sd_dCp: np.ndarray = None
+    sd_b_conc: np.ndarray = None
+
+    @property
+    def m_sites(self) -> np.ndarray:
+        """(N,) total molality of basic sites (alkalinity proxy) for the b_conc term."""
+        return self.m.sum(axis=1)
 
     @property
     def n(self) -> int:
@@ -51,6 +60,7 @@ class Batch:
             self.h[idx], self.c[idx], self.valid[idx], self.amine_id[idx], self.site_idx[idx],
             self.amine_names,
             self.m_amine_total[idx], self.solvent_kg_per_kg_water[idx],
+            self.dCp[idx], self.b_conc[idx], self.sd_dCp[idx], self.sd_b_conc[idx],
         )
 
     def repeat(self, k: int) -> "Batch":
@@ -61,6 +71,7 @@ class Batch:
             r(self.h), r(self.c), r(self.valid), r(self.amine_id), r(self.site_idx),
             self.amine_names,
             r(self.m_amine_total), r(self.solvent_kg_per_kg_water),
+            r(self.dCp), r(self.b_conc), r(self.sd_dCp), r(self.sd_b_conc),
         )
 
 
@@ -92,6 +103,10 @@ def compile_batch(mixtures: Sequence[Sequence[Tuple[AmineModel, float]]]) -> Bat
     dH = np.zeros((N, J, S))
     sdK = np.zeros((N, J, S))
     sdH = np.zeros((N, J, S))
+    dCp = np.zeros((N, J, S))
+    bcon = np.zeros((N, J, S))
+    sd_dCp = np.zeros((N, J, S))
+    sd_b = np.zeros((N, J, S))
     h = np.zeros((N, J, S))
     c = np.zeros((N, J, S))
     valid = np.zeros((N, J, S), dtype=bool)
@@ -108,6 +123,10 @@ def compile_batch(mixtures: Sequence[Sequence[Tuple[AmineModel, float]]]) -> Bat
                 dH[i, j, s] = sp.dH
                 sdK[i, j, s] = sp.sd_logK
                 sdH[i, j, s] = sp.sd_dH
+                dCp[i, j, s] = sp.dCp
+                bcon[i, j, s] = sp.b_conc
+                sd_dCp[i, j, s] = sp.sd_dCp
+                sd_b[i, j, s] = sp.sd_b_conc
                 h[i, j, s] = sp.h
                 c[i, j, s] = sp.c
                 valid[i, j, s] = True
@@ -119,7 +138,8 @@ def compile_batch(mixtures: Sequence[Sequence[Tuple[AmineModel, float]]]) -> Bat
         [1.0 + sum(mol * model.mw / 1000.0 for model, mol in mix) for mix in mixtures],
         dtype=float,
     )
-    return Batch(m, logK25, dH, sdK, sdH, h, c, valid, aid, sidx, names, m_tot, solvent)
+    return Batch(m, logK25, dH, sdK, sdH, h, c, valid, aid, sidx, names, m_tot, solvent,
+                 dCp, bcon, sd_dCp, sd_b)
 
 
 MAX_SITES, MAX_SPECIES = 6, 8
@@ -128,7 +148,9 @@ MAX_SITES, MAX_SPECIES = 6, 8
 def _amine_draws(name: str, k: int, seed: int) -> np.ndarray:
     """Standard-normal draws for one amine, keyed by (seed, amine name) only."""
     rng = np.random.default_rng([seed, zlib.crc32(name.encode())])
-    return rng.standard_normal((2, k, MAX_SITES, MAX_SPECIES))
+    # channels: logK25, dH, dCp, b_conc. C-order fill keeps channels 0-1 identical to the
+    # earlier 2-channel draws, so adding channels did not change existing samples.
+    return rng.standard_normal((4, k, MAX_SITES, MAX_SPECIES))
 
 
 def sample_batch(batch: Batch, k: int, seed: int) -> Tuple[Batch, np.ndarray]:
@@ -143,11 +165,11 @@ def sample_batch(batch: Batch, k: int, seed: int) -> Tuple[Batch, np.ndarray]:
     S = batch.logK25.shape[2]
     A = len(batch.amine_names)
     n_site = int(batch.site_idx.max()) + 1
-    draws = np.zeros((2, k, A + 1, n_site, S))
+    draws = np.zeros((4, k, A + 1, n_site, S))
     for a, name in enumerate(batch.amine_names):
         draws[:, :, a] = _amine_draws(name, k, seed)[:, :, :n_site, :S]
     draws[:, 0] = 0.0
-    epsK, epsH = draws[0], draws[1]
+    epsK, epsH, epsC, epsB = draws
     tiled = batch.repeat(k)
     sample_idx = np.tile(np.arange(k), batch.n)
     aid = np.where(tiled.amine_id < 0, A, tiled.amine_id)          # (N*k, J)
@@ -156,6 +178,8 @@ def sample_batch(batch: Batch, k: int, seed: int) -> Tuple[Batch, np.ndarray]:
     eH = epsH[sample_idx[:, None], aid, site]
     tiled.logK25 = tiled.logK25 + tiled.sd_logK * eK
     tiled.dH = tiled.dH + tiled.sd_dH * eH
+    tiled.dCp = tiled.dCp + tiled.sd_dCp * epsC[sample_idx[:, None], aid, site]
+    tiled.b_conc = tiled.b_conc + tiled.sd_b_conc * epsB[sample_idx[:, None], aid, site]
     return tiled, sample_idx
 
 
@@ -163,7 +187,11 @@ def sample_batch(batch: Batch, k: int, seed: int) -> Tuple[Batch, np.ndarray]:
 # Core solve
 # ---------------------------------------------------------------------------
 def _species_lnK(b: Batch, T: np.ndarray) -> np.ndarray:
-    return b.logK25 * LN10 - b.dH / R_KJ * (1.0 / T[:, None, None] - 1.0 / T_REF)
+    Tc = T[:, None, None]
+    return (b.logK25 * LN10
+            - b.dH / R_KJ * (1.0 / Tc - 1.0 / T_REF)
+            + b.dCp / R_KJ * (np.log(Tc / T_REF) + T_REF / Tc - 1.0)
+            + b.b_conc * b.m_sites[:, None, None] * LN10)
 
 
 def _charge(base, z, m, lnH, lnK2, lnKw, lnHCO3c):

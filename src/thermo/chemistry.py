@@ -8,6 +8,8 @@ Every amine is described by a list of *species* relative to its free (neutral) f
 
     h = protons added, c = carbamate groups added (Am + HCO3- <-> AmCOO- + H2O)
     K_S(T) = 10^logK25 * exp(-dH/R * (1/T - 1/298.15))       (van 't Hoff)
+             * exp(dCp/R * (ln(T/298.15) + 298.15/T - 1))    (optional heat capacity)
+             * 10^(b_conc * m_sites)                           (optional concentration term)
 
 so protonation (h=1, c=0), carbamate (h=0, c=1), protonated carbamate (h=1, c=1),
 dicarbamate (h=0, c=2) etc. all share one representation. "Apparent" constants are
@@ -79,6 +81,12 @@ class Species:
     dH: float                 # kJ/mol for forming this species from free amine
     sd_logK: float = 0.0      # 1-sigma uncertainty used for Monte Carlo propagation
     sd_dH: float = 0.0
+    # Optional corrections (0 = off), see equilibrium._species_lnK:
+    dCp: float = 0.0          # kJ/(mol K): reaction heat capacity, dH(T) = dH + dCp (T - 298.15)
+    b_conc: float = 0.0       # log10 K shift per mol/kg of total amine sites (apparent-K
+                              # concentration dependence, the usual Kent-Eisenberg extension)
+    sd_dCp: float = 0.0
+    sd_b_conc: float = 0.0
 
     @property
     def charge(self) -> int:

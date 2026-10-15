@@ -13,7 +13,9 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 
 - [x] **MEA and MDEA pCO2-loading + MDEA heat of absorption** — NIST ThermoML, see the dedicated section *"MEA / MDEA — NIST ThermoML (added 2026-10-15)"* below.
 
-- [ ] **MDEA+PZ solubility review/compilation** — Barbieri & Moioli 2025, J. Chem. Eng. Data. DOI: 10.1021/acs.jced.5c00570
+- [x] **MDEA+PZ solubility review/compilation** — Barbieri, C.; Moioli, S. "Solubility Data of CO2 in the MDEA+PZ Solvent: A Review of Experimental Data, Setups, and Procedures." *J. Chem. Eng. Data* **2025**, 70, 4861–4879. DOI: [10.1021/acs.jced.5c00570](https://doi.org/10.1021/acs.jced.5c00570). Open access, CC-BY 4.0.
+  - **Local copy:** `data/raw/bottger 2009.pdf` — *note: the file name is misleading; the PDF is this 2025 review, not Böttger et al. 2009.*
+  - Contains only summary ranges (Tables 1–4) and plots, no raw data tables, so nothing was digitised from it. Used as a **map of ~20 MDEA+PZ VLE sources**; that map led to the Xu (2011) thesis below. Its Table 3 point count for Xu (33) matches our transcription.
 
 - [ ] **HQNN-Amine / SAGE-Amine repos** — structures + reference property sets. github.com/hclim0213/HQNN-Amine, github.com/hclim0213/SAGE-Amine
 
@@ -117,7 +119,7 @@ original articles below.
     - Block 7 only: 9 pts, 30 mass% MDEA, 313.2 K, pCO2 1.6–182 kPa (same loading labelling as above). The AEP+MDEA blend VLE is not in the ThermoML record; its density / viscosity / surface-tension blocks are kept for the later physical-properties stage.
   - **Limitation:** no MDEA data above 333 K in this set, so MDEA's temperature dependence (key for the 393 K stripper) rests on the protonation-enthalpy prior, kept at literature grade (−34.9 ± 3 kJ/mol); validated by the calorimetry below.
 
-- **Status:** `[x]` — **MDEA heat of absorption, HELD OUT (validation only)**
+- **Status:** `[x]` — **MDEA heat of absorption, used in the joint MDEA fit** (was held out until 2026-10-15; it is what rejected the heat-capacity variant, see LOG.md)
   - Arcis, H.; Rodier, L.; Ballerat-Busserolles, K.; Coxam, J.-Y. "Enthalpy of solution of CO2 in aqueous solutions of methyldiethanolamine at T = 322.5 K and pressure up to 5 MPa." *J. Chem. Thermodyn.* **2008**, 40, 1022–1029. DOI: [10.1016/j.jct.2008.01.028](https://doi.org/10.1016/j.jct.2008.01.028)
   - 32 flow-calorimetry points, 15 and 30 mass% MDEA, all at or beyond CO2 saturation (integral enthalpy per mol CO2 fed). Model MAE 1.4 kJ/mol.
 
@@ -129,4 +131,18 @@ original articles below.
   - In ThermoML but only densities, no CO2 solubility: Böttger et al. 2009 (10.1021/je900083k) and Speyer et al. 2010 (10.1021/je9003383), MDEA+PZ. The MDEA+PZ VLE tables in these papers would be an excellent second held-out blend test if transcribed from the PDFs.
   - Cheng et al. 2010 (10.1016/j.jct.2009.09.005): MDEA block lacks the MDEA concentration.
   - Zoghi et al. 2013 (10.1016/j.jct.2013.08.002), Mokraoui et al. 2014 (10.1021/je500130j): no MDEA–CO2 VLE in the record.
+
+### MDEA + PZ blend VLE at stripper temperatures — Xu (2011) PhD thesis (added 2026-10-15)
+
+- **Status:** `[x]` — **used in the joint MDEA calibration** (first used held out: it exposed a +0.073 mol/mol-alkalinity bias at 100–160 °C). Generalisation checked leave-one-blend-out (MAE 0.037 / 0.014). Table 2-12 capacity and heat values are used as benchmarks in `calibrate.py`.
+- Xu, Q. "Thermodynamics of CO2 Loaded Aqueous Amines." PhD Dissertation, The University of Texas at Austin, **2011** (supervisor G. T. Rochelle). Open copy hosted by the Rochelle group: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Xu-2011-Thermodynamics-of-CO2-Loaded-Aqueous-Amines.pdf
+- **Local copy:** `data/raw/xu_2011_thesis/` (gitignored). **Ingestion:** `src/data/ingest_xu2011_mdea_pz.py` holds a verbatim transcription of Tables 2-8 and 2-9 (each of the 33 rows checked programmatically against the PDF text) → `data/interim/mdea_pz_xu2011.csv`.
+- Table 2-8: 7 m MDEA / 2 m PZ, 20 points; Table 2-9: 5 m MDEA / 5 m PZ, 13 points; 100–160 °C, pCO2 78–2477 kPa (calibration-style cap at 2000 kPa applies). In the thesis "Amine m" is total alkalinity and loading is per mol alkalinity; the script converts to MDEA / PZ molalities using the 7:2 and 5:5 mole ratios.
+- Table 2-12 of the same thesis (heat of absorption and cyclic capacity for 7 m MEA, 8 m PZ, 7/2 and 5/5 MDEA/PZ; from Xu's empirical fits to measured VLE) → `XU_CAPACITY` / `XU_HEAT` benchmarks in `src/thermo/calibrate.py`.
+
+### MDEA + PZ sources checked and NOT usable yet (2026-10-15)
+- Not in NIST ThermoML (HTTP 404): Derks et al. 2010 *J. Chem. Thermodyn.* 42, 151 (10.1016/j.jct.2009.07.025); Vahidi et al. 2009 *J. Chem. Thermodyn.* 41, 1272 (10.1016/j.jct.2009.05.017); Hosseini Jenab et al. 2005 *J. Chem. Eng. Data* 50, 583 (10.1021/je049666p); Najibi & Maleki 2013 *Fluid Phase Equilib.* 354, 298 (10.1016/j.fluid.2013.06.022); Ali & Aroua 2004 *Int. J. Thermophys.* 25, 1863 (10.1007/s10765-004-7740-7).
+- In ThermoML but no blend data: Suleman et al. 2018 *Fluid Phase Equilib.* 463, 142 (10.1016/j.fluid.2018.02.016) — only 4 single-MDEA and 4 single-PZ points.
+- Böttger et al. 2009 (10.1021/je900083k) and Speyer et al. 2010 (10.1021/je9003383): paywalled; ThermoML holds densities only. Speyer would add 149 low-loading points at 313–393 K if a copy becomes available (e.g. via the BITS library).
+- Further open UT Austin theses with MDEA/PZ data (not yet pulled): Chen 2011 (https://tdl-ir.tdl.org/handle/2152/ETD-UT-2011-08-4312), Nguyen 2013, Li 2015, Du 2016.
 

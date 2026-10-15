@@ -1,8 +1,8 @@
 """
 Fresh clone -> key figures.
 
-    smoke test -> ingest MEA/MDEA (NIST ThermoML) -> calibrate equilibrium model on VLE
-    data (MEA, MDEA, AMP, PZ; AMP+PZ blend and MDEA calorimetry held out)
+    smoke test -> ingest MEA/MDEA (NIST ThermoML) + MDEA/PZ (Xu 2011) -> calibrate on VLE
+    data (MEA, MDEA, AMP, PZ; AMP+PZ and MDEA+PZ blends and MDEA calorimetry held out)
     -> screen ~23k yellow/blue mixtures with Monte Carlo UQ -> figures + shortlist
 
 Neo4j is optional and needs a running server + .env, so it is not chained here:
@@ -21,6 +21,7 @@ os.environ.setdefault("MKL_THREADING_LAYER", "TBB")
 STEPS = [
     ("RDKit smoke test", [sys.executable, "src/data/smoke_test.py"]),
     ("Ingest MEA/MDEA data (NIST ThermoML)", [sys.executable, "-m", "src.data.ingest_thermoml_mea_mdea"]),
+    ("Ingest MDEA+PZ blend data (Xu 2011)", [sys.executable, "-m", "src.data.ingest_xu2011_mdea_pz"]),
     ("Calibrate equilibrium model", [sys.executable, "-m", "src.thermo.calibrate"]),
     ("Screen mixtures", [sys.executable, "-m", "src.screening.run_screen"]),
     ("Figures + shortlist", [sys.executable, "-m", "src.viz.screening_plots"]),

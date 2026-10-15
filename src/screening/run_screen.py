@@ -281,7 +281,8 @@ def main():
         "counts": df["color"].value_counts().to_dict(),
         "runtime_s": round(time.time() - t0, 1),
         "caveats": [
-            "MEA and MDEA use literature constants (no pCO2-loading calibration data yet)",
+            "MDEA in blends: valued within -16 % (7/2 MDEA/PZ) .. +0 % (5/5) of Xu (2011) vs MEA; model-form sd on the MDEA concentration term covers the remaining ambiguity",
+            "MEA absorber-side capacity (40 C, 0.5-5 kPa) under-predicted (0.36 vs 0.50 mol/kg, Xu 2011), so PZ-rich mixtures are over-valued vs MEA by up to ~35 %",
             "library partner constants come from OPERA pKa + structure-class priors",
             "equilibrium short-cut process model: for ranking, not plant design",
             "cost, corrosion, degradation, viscosity, volatility not yet included",

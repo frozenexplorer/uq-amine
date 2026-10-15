@@ -12,9 +12,14 @@ dependencies:
   - matplotlib
   - seaborn
   - optuna
+  - python-dotenv
   - pip
   - pip:
       - ngboost
       - mapie
       - chemprop
+      - neo4j
       # Quantum extras (PennyLane, qiskit) — add only when Phase 6 (quantum ablation) starts.
+variables:
+  # MKL's default OpenMP layer is missing on Windows and crashes LAPACK; TBB works.
+  MKL_THREADING_LAYER: TBB

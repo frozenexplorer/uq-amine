@@ -1,0 +1,89 @@
+node {
+  diameter: 40px;
+  color: #A5ABB6;
+  border-color: #9AA1AC;
+  border-width: 2px;
+  text-color-internal: #FFFFFF;
+  font-size: 9px;
+}
+
+relationship {
+  color: #A5ABB6;
+  shaft-width: 1px;
+  font-size: 8px;
+  padding: 3px;
+  text-color-external: #000000;
+  text-color-internal: #FFFFFF;
+  caption: '<type>';
+}
+
+node.Amine {
+  color: #C990C0;
+  border-color: #B261A5;
+  diameter: 45px;
+  caption: '{name}';
+}
+
+node.Partner {
+  color: #57C7E3;
+  border-color: #23B3D7;
+  text-color-internal: #2A2C34;
+  caption: '{name}';
+}
+
+node.Core {
+  color: #E8572A;
+  border-color: #B8401C;
+  diameter: 70px;
+  font-size: 14px;
+  caption: '{name}';
+}
+
+node.Mixture {
+  diameter: 35px;
+  caption: '{label}';
+}
+
+node.Shortlist {
+  diameter: 55px;
+  border-width: 4px;
+  font-size: 10px;
+}
+
+node.Reference {
+  color: #DDDDDD;
+  border-color: #888888;
+  text-color-internal: #2A2C34;
+  caption: '{label}';
+}
+
+node.Yellow {
+  color: #FFD400;
+  border-color: #C9A800;
+  text-color-internal: #2A2C34;
+  caption: '{label}';
+}
+
+node.Blue {
+  color: #1F6FEB;
+  border-color: #144FA8;
+  text-color-internal: #FFFFFF;
+  caption: '{label}';
+}
+
+node.Scenario {
+  color: #2E7D32;
+  border-color: #1B5E20;
+  diameter: 80px;
+  caption: '{label}';
+}
+
+relationship.IN_MIXTURE {
+  color: #8A8A8A;
+  caption: '{wt_pct}';
+}
+
+relationship.SCORED_IN {
+  color: #66BB6A;
+  caption: '{rank}';
+}

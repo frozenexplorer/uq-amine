@@ -14,7 +14,21 @@ candidate screening**. Kinetics and degradation are scoped out this semester (se
 
 ## Status
 
-🚧 Early build. See `LOG.md` for session-by-session progress.
+**Current deliverable:** a ranked, uncertainty-aware list of amine **mixtures** to test in the lab.
+Yellow = mixtures of MEA / MDEA / PZ / AMP only; blue = at least one of those + another amine.
+Ranked on cyclic capacity + regeneration energy (cost and corrosion/physical factors come next).
+See `LOG.md` for session-by-session progress.
+
+```
+VLE data ──► src/thermo/calibrate.py ──► calibrated equilibrium model (+ conformal margin)
+                                                │
+partner amines (src/screening/partners.py) ─────┤
+                                                ▼
+              src/screening/run_screen.py  (≈23k mixtures × 48 MC samples × 2 scenarios)
+                                                │
+             ┌──────────────────────────────────┼───────────────────────────────┐
+  reports/figures/screening/      reports/results/shortlist_top100.*     Neo4j (yellow/blue graph)
+```
 
 ## Repo layout
 
@@ -39,9 +53,23 @@ python run_all.py
 
 ## Results
 
-| Target | Model | Split | R² | MAE | Coverage (90% PI) |
-|---|---|---|---|---|---|
-| _TBD_ | | | | | |
+| Target | Model | Split | MAE (mol CO₂/mol amine) | Coverage (90% PI) |
+|---|---|---|---|---|
+| CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 | – |
+| CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 | – |
+| CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 | 0.30 parameter-only → **0.92** with conformal margin |
+
+Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 5% + PZ 25%.
+No mixture yet beats MEA at its 90% lower bound — MEA/MDEA calibration data is the main missing piece.
+
+## Neo4j
+
+```bash
+python -m src.data.load_neo4j_graph       # experimental + candidate-amine graph
+python -m src.data.load_neo4j_mixtures    # screened mixtures (Yellow / Blue / Reference labels)
+```
+Drag `reports/neo4j_mixtures.grass` onto Neo4j Browser for the yellow/blue colours, then run the
+blocks in `reports/neo4j_mixtures_demo.cypher`.
 
 ## License
 

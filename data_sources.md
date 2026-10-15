@@ -8,7 +8,11 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
   - **Status:** Identified; 517-row databank not publicly downloadable. Paper states data are available from the corresponding author on reasonable request.
   - **Underlying literature:** See individual source entries below.
 
-- [ ] **Low-conc MEA/PZ/AMP/CESAR-1 solubility** — 2024. sciencedirect.com/science/article/pii/S2590123024004171
+- [~] **Low-conc MEA/PZ/AMP/CESAR-1 solubility** — Francois et al. 2024, Results in Engineering 22, 102163. sciencedirect.com/science/article/pii/S2590123024004171
+  - **Note (2026-10-15):** Tables 6-9 give T, *total* P, liquid mole fractions and the *amine* vapour fraction (y1/y2) -- **no CO2 partial pressure**, so they cannot calibrate a pCO2-loading model. Not used for calibration.
+
+- [ ] **NEEDED: MEA pCO2-loading data (30 wt%, 40-120 C)** — e.g. Aronu et al. 2011 (J. Chem. Thermodyn., likely in NIST ThermoML); Jou, Mather & Otto 1995 (Can. J. Chem. Eng.)
+- [ ] **NEEDED: MDEA pCO2-loading data** — e.g. Jou, Mather & Otto 1982 (Ind. Eng. Chem. Process Des. Dev.); Ma'mun et al. 2005
 
 - [ ] **MDEA+PZ solubility review/compilation** — Barbieri & Moioli 2025, J. Chem. Eng. Data. DOI: 10.1021/acs.jced.5c00570
 

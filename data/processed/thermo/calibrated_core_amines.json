@@ -1,0 +1,256 @@
+{
+  "loading_discrepancy_q90": 0.06711845246959691,
+  "fit_report": {
+    "AMP": {
+      "n_points": 110,
+      "chi2_reduced": 2.0442462880807875,
+      "mae_loading": 0.02820783517302997,
+      "aard_pct": 16.97220706866818,
+      "params": {
+        "AMPH+.logK25": {
+          "prior": 9.68,
+          "fit": 10.107163608548236,
+          "sd": 0.04495765731715293
+        },
+        "AMPH+.dH": {
+          "prior": -54.0,
+          "fit": -61.11871049880296,
+          "sd": 2.6080753876215303
+        },
+        "AMPCOO-.logK25": {
+          "prior": -1.0,
+          "fit": -1.5543643031001353,
+          "sd": 0.738204559233712
+        },
+        "AMPCOO-.dH": {
+          "prior": -15.0,
+          "fit": -18.314487629365544,
+          "sd": 16.981053448218525
+        }
+      }
+    },
+    "PZ": {
+      "n_points": 52,
+      "chi2_reduced": 0.09762487544192142,
+      "mae_loading": 0.007908490596505,
+      "aard_pct": 2.45857838723143,
+      "params": {
+        "PZH+.logK25": {
+          "prior": 9.73,
+          "fit": 10.037018596645453,
+          "sd": 0.27603578115886895
+        },
+        "PZH+.dH": {
+          "prior": -42.9,
+          "fit": -44.49412060223015,
+          "sd": 5.978591970550131
+        },
+        "PZCOO-.logK25": {
+          "prior": 1.4,
+          "fit": 1.3386035952716697,
+          "sd": 0.3511040968354174
+        },
+        "PZCOO-.dH": {
+          "prior": -20.0,
+          "fit": -26.758985823774694,
+          "sd": 9.478122999130642
+        },
+        "H+PZCOO-.logK25": {
+          "prior": 10.84,
+          "fit": 10.905820427179819,
+          "sd": 0.12157012109999868
+        },
+        "H+PZCOO-.dH": {
+          "prior": -50.0,
+          "fit": -54.6567557244956,
+          "sd": 4.146990264379449
+        },
+        "PZ(COO-)2.logK25": {
+          "prior": 1.9,
+          "fit": 2.2685857268202776,
+          "sd": 0.3821993412253072
+        },
+        "PZ(COO-)2.dH": {
+          "prior": -40.0,
+          "fit": -33.28954834479613,
+          "sd": 10.489875764159512
+        }
+      }
+    },
+    "AMP+PZ_heldout": {
+      "n_points": 158,
+      "mae_loading_prior": 0.10044610161368175,
+      "mae_loading_calibrated": 0.05192402811495241,
+      "aard_pct_calibrated": 8.882944167274056,
+      "bias_loading_calibrated": -0.050665602293630846,
+      "coverage90_param_only": 0.2974683544303797,
+      "loading_discrepancy_q90": 0.06711845246959691,
+      "coverage90_cqr_leave_group_out": {
+        "22/8 wt% AMP/PZ": 1.0,
+        "25/5 wt% AMP/PZ": 0.9230769230769231,
+        "28/2 wt% AMP/PZ": 0.8518518518518519
+      },
+      "coverage90_cqr_leave_group_out_mean": 0.9249762583095916
+    }
+  },
+  "amines": {
+    "MEA": {
+      "smiles": "NCCO",
+      "mw": 61.08,
+      "source": "literature",
+      "note": "literature priors; no pCO2-loading data in repo yet",
+      "species": [
+        {
+          "name": "MEA",
+          "h": 0,
+          "c": 0,
+          "logK25": 0.0,
+          "dH": 0.0,
+          "sd_logK": 0.0,
+          "sd_dH": 0.0
+        },
+        {
+          "name": "MEAH+",
+          "h": 1,
+          "c": 0,
+          "logK25": 9.5,
+          "dH": -50.5,
+          "sd_logK": 0.15,
+          "sd_dH": 3.0
+        },
+        {
+          "name": "MEACOO-",
+          "h": 0,
+          "c": 1,
+          "logK25": 1.5,
+          "dH": -23.0,
+          "sd_logK": 0.35,
+          "sd_dH": 8.0
+        }
+      ]
+    },
+    "MDEA": {
+      "smiles": "CN(CCO)CCO",
+      "mw": 119.16,
+      "source": "literature",
+      "note": "literature priors; no pCO2-loading data in repo yet",
+      "species": [
+        {
+          "name": "MDEA",
+          "h": 0,
+          "c": 0,
+          "logK25": 0.0,
+          "dH": 0.0,
+          "sd_logK": 0.0,
+          "sd_dH": 0.0
+        },
+        {
+          "name": "MDEAH+",
+          "h": 1,
+          "c": 0,
+          "logK25": 8.56,
+          "dH": -34.9,
+          "sd_logK": 0.15,
+          "sd_dH": 3.0
+        }
+      ]
+    },
+    "AMP": {
+      "smiles": "CC(C)(N)CO",
+      "mw": 89.14,
+      "source": "calibrated",
+      "note": "MAP fit to 110 pCO2-loading points",
+      "species": [
+        {
+          "name": "AMP",
+          "h": 0,
+          "c": 0,
+          "logK25": 0.0,
+          "dH": 0.0,
+          "sd_logK": 0.0,
+          "sd_dH": 0.0
+        },
+        {
+          "name": "AMPH+",
+          "h": 1,
+          "c": 0,
+          "logK25": 10.107163608548236,
+          "dH": -61.11871049880296,
+          "sd_logK": 0.04495765731715293,
+          "sd_dH": 2.6080753876215303
+        },
+        {
+          "name": "AMPCOO-",
+          "h": 0,
+          "c": 1,
+          "logK25": -1.5543643031001353,
+          "dH": -18.314487629365544,
+          "sd_logK": 0.738204559233712,
+          "sd_dH": 16.981053448218525
+        }
+      ]
+    },
+    "PZ": {
+      "smiles": "C1CNCCN1",
+      "mw": 86.14,
+      "source": "calibrated",
+      "note": "MAP fit to 52 pCO2-loading points",
+      "species": [
+        {
+          "name": "PZ",
+          "h": 0,
+          "c": 0,
+          "logK25": 0.0,
+          "dH": 0.0,
+          "sd_logK": 0.0,
+          "sd_dH": 0.0
+        },
+        {
+          "name": "PZH+",
+          "h": 1,
+          "c": 0,
+          "logK25": 10.037018596645453,
+          "dH": -44.49412060223015,
+          "sd_logK": 0.27603578115886895,
+          "sd_dH": 5.978591970550131
+        },
+        {
+          "name": "PZH2++",
+          "h": 2,
+          "c": 0,
+          "logK25": 15.08,
+          "dH": -74.0,
+          "sd_logK": 0.25,
+          "sd_dH": 5.0
+        },
+        {
+          "name": "PZCOO-",
+          "h": 0,
+          "c": 1,
+          "logK25": 1.3386035952716697,
+          "dH": -26.758985823774694,
+          "sd_logK": 0.3511040968354174,
+          "sd_dH": 9.478122999130642
+        },
+        {
+          "name": "H+PZCOO-",
+          "h": 1,
+          "c": 1,
+          "logK25": 10.905820427179819,
+          "dH": -54.6567557244956,
+          "sd_logK": 0.12157012109999868,
+          "sd_dH": 4.146990264379449
+        },
+        {
+          "name": "PZ(COO-)2",
+          "h": 0,
+          "c": 2,
+          "logK25": 2.2685857268202776,
+          "dH": -33.28954834479613,
+          "sd_logK": 0.3821993412253072,
+          "sd_dH": 10.489875764159512
+        }
+      ]
+    }
+  }
+}

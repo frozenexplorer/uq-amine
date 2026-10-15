@@ -55,17 +55,22 @@ python run_all.py
 
 | Target | Model | Split | MAE | Coverage (90% PI) |
 |---|---|---|---|---|
-| CO₂ loading, MEA | calibrated equilibrium | fit (Wagner 2013, 98 pts) | 0.016 mol/mol | – |
+| CO₂ loading, MEA | calibrated equilibrium | fit (Wagner 2013 + Aronu 2011, 236 pts) | 0.014 mol/mol | – |
+| CO₂ loading, MEA / PZ / MEA+PZ, 40–100 °C | calibrated equilibrium | **held out** (Dugas 2009, 50 / 43 / 12 pts) | 0.012 / 0.011 / 0.009 mol/mol alkalinity | MEA parameter-only 0.62 → 0.92 after inter-lab sd inflation (×2.25) |
 | CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 mol/mol | – |
 | CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 mol/mol | – |
 | CO₂ loading, MDEA | calibrated equilibrium | joint fit (Leontiadis 2019 + Dey 2018 + Xu 2011 MDEA+PZ, 112 pts; + Arcis 2008 heats) | 0.031 mol/mol; heats 1.7 kJ/mol | – |
 | CO₂ loading, MDEA+PZ blends, 100–160 °C | calibrated equilibrium | **leave-one-blend-out** (Xu 2011) | 0.037 / 0.014 mol/mol alkalinity | 1.00 with conformal margin |
 | CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 mol/mol | 0.30 parameter-only → **0.92** with conformal margin |
-| Capacity vs 7 m MEA (40 °C, 0.5→5 kPa) | calibrated equilibrium | benchmark (Xu 2011 Table 2-12) | 5/5 MDEA/PZ 1.95 vs 1.96; 7/2 1.41 vs 1.68; 8 m PZ 2.32 vs 1.70 | – |
+| Capacity vs 7 m MEA (40 °C, 0.5→5 kPa), measured | calibrated equilibrium | like-for-like benchmark (Dugas 2009, held out) | 7 m MEA 0.338 vs 0.328 mol/kg; 8 m PZ 2.48× vs 2.57×; 7/2 MEA/PZ 1.59× vs 1.82× | – |
+| Capacity vs 7 m MEA, MDEA/PZ | calibrated equilibrium | benchmark (Xu 2011 Table 2-12, empirical fits) | 7/2 MDEA/PZ 1.50× vs 1.68×; 5/5 2.08× vs 1.96× | – |
 
-Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 2.5% + PZ 27.5%.
-No mixture yet beats MEA at its conservative 90% lower bound. Known biases: PZ is over-valued relative to MEA
-at the absorber end (MEA's lean-end capacity is under-predicted); MDEA-rich blends are slightly under-valued.
+Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 2.5% + PZ 27.5%
+(overall #52; 6 yellow in the top 100). No mixture yet beats MEA at its conservative 90% lower bound.
+Effect of the 2026-10-15 MEA recalibration: `reports/results/ranking_change_mea_recalibration.md`.
+Known biases (absorber end, vs measured data): PZ and MEA+PZ are, if anything, slightly *under*-valued relative
+to MEA (−4 % and −13 %); MDEA-rich blends are slightly under-valued. Xu's (2011) MEA capacity of 0.50 mol/kg,
+which earlier suggested the opposite, comes from an empirical fit; measured 7 m MEA data give 0.30–0.33.
 
 ## Neo4j
 

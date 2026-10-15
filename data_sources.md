@@ -13,6 +13,8 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 
 - [x] **MEA and MDEA pCO2-loading + MDEA heat of absorption** — NIST ThermoML, see the dedicated section *"MEA / MDEA — NIST ThermoML (added 2026-10-15)"* below.
 
+- [x] **MEA low-pressure VLE (Aronu 2011) and MEA / PZ / MEA+PZ wetted-wall data (Dugas 2009)**: see the dedicated sections below.
+
 - [x] **MDEA+PZ solubility review/compilation** — Barbieri, C.; Moioli, S. "Solubility Data of CO2 in the MDEA+PZ Solvent: A Review of Experimental Data, Setups, and Procedures." *J. Chem. Eng. Data* **2025**, 70, 4861–4879. DOI: [10.1021/acs.jced.5c00570](https://doi.org/10.1021/acs.jced.5c00570). Open access, CC-BY 4.0.
   - **Local copy:** `data/raw/bottger 2009.pdf` — *note: the file name is misleading; the PDF is this 2025 review, not Böttger et al. 2009.*
   - Contains only summary ranges (Tables 1–4) and plots, no raw data tables, so nothing was digitised from it. Used as a **map of ~20 MDEA+PZ VLE sources**; that map led to the Xu (2011) thesis below. Its Table 3 point count for Xu (33) matches our transcription.
@@ -139,6 +141,27 @@ original articles below.
 - **Local copy:** `data/raw/xu_2011_thesis/` (gitignored). **Ingestion:** `src/data/ingest_xu2011_mdea_pz.py` holds a verbatim transcription of Tables 2-8 and 2-9 (each of the 33 rows checked programmatically against the PDF text) → `data/interim/mdea_pz_xu2011.csv`.
 - Table 2-8: 7 m MDEA / 2 m PZ, 20 points; Table 2-9: 5 m MDEA / 5 m PZ, 13 points; 100–160 °C, pCO2 78–2477 kPa (calibration-style cap at 2000 kPa applies). In the thesis "Amine m" is total alkalinity and loading is per mol alkalinity; the script converts to MDEA / PZ molalities using the 7:2 and 5:5 mole ratios.
 - Table 2-12 of the same thesis (heat of absorption and cyclic capacity for 7 m MEA, 8 m PZ, 7/2 and 5/5 MDEA/PZ; from Xu's empirical fits to measured VLE) → `XU_CAPACITY` / `XU_HEAT` benchmarks in `src/thermo/calibrate.py`.
+
+### MEA low-pressure VLE — Aronu et al. (2011) (added 2026-10-15)
+
+- **Status:** `[x]` — **used in the MEA calibration** (together with Wagner 2013).
+- Aronu, U. E.; Gondal, S.; Hessen, E. T.; Haug-Warberg, T.; Hartono, A.; Hoff, K. A.; Svendsen, H. F. "Solubility of CO2 in 15, 30, 45 and 60 mass% MEA from 40 to 120 °C and model representation using the extended UNIQUAC framework." *Chem. Eng. Sci.* **2011**, 66, 6393–6406. DOI: [10.1016/j.ces.2011.08.042](https://doi.org/10.1016/j.ces.2011.08.042)
+- **Local copy:** `data/raw/aronu2011.pdf` (gitignored; supplied by the user, identity confirmed from the PDF's title page and DOI). **Ingestion:** `src/data/ingest_aronu2011_mea.py` → `data/interim/mea_aronu2011.csv`; every column checked programmatically against the pdftotext output (276 numbers).
+- Used: Tables 3–6, 40 / 60 / 80 °C, low-temperature apparatus with **measured** pCO2 (IR analyser): 138 points, 15/30/45/60 mass% MEA (2.9–24.6 m), pCO2 0.0007–19 kPa.
+- Not used: the 60–120 °C total-pressure columns. Their printed pCO2 is the authors' e-UNIQUAC *model* value (fitting to it would be circular), and Ptot → pCO2 at 45–60 mass% MEA needs water/MEA activities. Wagner (2013) already covers the stripper side.
+
+### MEA, PZ and MEA+PZ — Dugas (2009) PhD thesis (added 2026-10-15)
+
+- **Status:** `[x]` — **held out** (never fitted). It is the like-for-like capacity benchmark (MEA and PZ measured in the same apparatus) and a held-out MEA+PZ blend test.
+- Dugas, R. E. "Carbon Dioxide Absorption, Desorption, and Diffusion in Aqueous Piperazine and Monoethanolamine." PhD Dissertation, The University of Texas at Austin, **2009** (supervisor G. T. Rochelle). Open copy: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Dugas-2009-Carbon-Dioxide-Absorption-Desorption-and-Diffusion-in-Aqueous-Piperazine-and-Monoethanolamine.pdf (repository record: https://tdl-ir.tdl.org/items/f3f9b496-117d-4fa2-90fa-bee493493a12)
+- **Local copy:** `data/raw/dugas_2009_thesis/` (gitignored). **Ingestion:** `src/data/ingest_dugas2009_mea_pz.py` → `data/interim/dugas2009_wwc.csv`; all 210 numbers checked against the PDF text.
+- Table 4.4: 7/9/11/13 m MEA (50 pts); Table 4.5: 2/5/8/12 m PZ (43 pts); Table 4.6: 7 m MEA / 2 m PZ (12 pts); 40–100 °C, P*CO2 0.01–39 kPa. Wetted-wall column (P* bracketed by absorption/desorption at six inlet pressures, interpolated to zero flux). Loading is per mol alkalinity.
+
+### Checked for the MEA capacity question, not used (2026-10-15)
+
+- **Xu (2011) Table 2-12 MEA capacity (0.50 mol/kg) — retired as an MEA benchmark.** It comes from Xu's Table 2-10 empirical correlation ln P(Pa) = 38.6 − 12379/T − 16.0α² + 3556α/T + 8702α²/T, which has no concentration dependence and was regressed over 2.9–24.6 m MEA and 40–150 °C (Xu's own data plus Jou 1995, Hilliard 2008, Dugas 2008, Ma'mun 2005, Aronu 2011). At 40 °C it reads 7 m MEA 0.01–0.03 mol/mol too high. Its slope from 0.5 to 5 kPa is 0.101 per decade, against 0.061–0.067 measured, so its capacity of 0.50 mol/kg is about 50 % above the measured 0.30–0.33 (Aronu, Wagner, Dugas). Xu's MDEA/PZ entries are still reported in `calibrate.py`, as ratios to his own MEA value.
+- **Hilliard (2008) PhD thesis**, UT Austin, "A Predictive Thermodynamic Model for an Aqueous Blend of Potassium Carbonate, Piperazine, and Monoethanolamine for Carbon Dioxide Capture from Flue Gas." Open copy: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Hilliard-2008-A-Predictive-Thermodynamic-Model-for-an-Aqueous-Blend-of-Potassium-Carbonate-Piperazine-and-Monoethanolamine-for-Car.pdf. Downloaded to `data/raw/hilliard_2008_thesis/` and **not yet transcribed**. It has 3.5/7/11 m MEA and MEA/PZ VLE at 40–60 °C (FTIR equilibrium cell) and would be a fourth independent MEA set plus more MEA+PZ data if needed.
+- Jou, Mather & Otto (1995, *Can. J. Chem. Eng.* 73, 140) is still not obtained (paywalled, not in ThermoML).
 
 ### MDEA + PZ sources checked and NOT usable yet (2026-10-15)
 - Not in NIST ThermoML (HTTP 404): Derks et al. 2010 *J. Chem. Thermodyn.* 42, 151 (10.1016/j.jct.2009.07.025); Vahidi et al. 2009 *J. Chem. Thermodyn.* 41, 1272 (10.1016/j.jct.2009.05.017); Hosseini Jenab et al. 2005 *J. Chem. Eng. Data* 50, 583 (10.1021/je049666p); Najibi & Maleki 2013 *Fluid Phase Equilib.* 354, 298 (10.1016/j.fluid.2013.06.022); Ali & Aroua 2004 *Int. J. Thermophys.* 25, 1863 (10.1007/s10765-004-7740-7).

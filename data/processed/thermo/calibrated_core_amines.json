@@ -2,32 +2,37 @@
   "loading_discrepancy_q90": 0.06711845246959691,
   "fit_report": {
     "MEA": {
-      "n_points": 98,
+      "n_points": 236,
       "n_other_observations": 0,
-      "chi2_reduced": 0.3255024110729961,
-      "mae_loading": 0.015533894287530242,
-      "aard_pct": 4.3983157514864955,
+      "chi2_reduced": 0.34221751064444755,
+      "mae_loading": 0.014194239440924709,
+      "aard_pct": 7.1202832812415,
       "params": {
         "MEAH+.logK25": {
           "prior": 9.5,
-          "fit": 10.148411807802626,
-          "sd": 0.09217417077633566
+          "fit": 10.19510896277372,
+          "sd": 0.04156192758520295
         },
         "MEAH+.dH": {
           "prior": -50.5,
-          "fit": -49.916872328951726,
-          "sd": 2.699309780754434
+          "fit": -50.95681534495792,
+          "sd": 1.696330708358839
         },
         "MEACOO-.logK25": {
           "prior": 1.5,
-          "fit": 1.4600635869867675,
-          "sd": 0.10954257869981746
+          "fit": 1.5215003115770627,
+          "sd": 0.04822664442594415
         },
         "MEACOO-.dH": {
           "prior": -23.0,
-          "fit": -22.94727728877655,
-          "sd": 3.2768940327734533
+          "fit": -23.875475544223587,
+          "sd": 2.1948359858260407
         }
+      },
+      "interlab_sd_inflation": {
+        "factor": 2.25,
+        "dugas_coverage90_raw": 0.62,
+        "dugas_coverage90_inflated": 0.92
       }
     },
     "AMP": {
@@ -221,7 +226,7 @@
       "before_mdea_blend_fit": [
         {
           "solvent": "7 m MEA",
-          "model": 0.361031635595789,
+          "model": 0.33836658483102355,
           "xu_2011": 0.5,
           "model_vs_MEA": 1.0,
           "xu_vs_MEA": 1.0
@@ -230,28 +235,28 @@
           "solvent": "8 m PZ",
           "model": 0.8382368824522552,
           "xu_2011": 0.85,
-          "model_vs_MEA": 2.321782358681568,
+          "model_vs_MEA": 2.477303965670432,
           "xu_vs_MEA": 1.7
         },
         {
           "solvent": "7 m MDEA / 2 m PZ",
           "model": 0.5193513978426715,
           "xu_2011": 0.84,
-          "model_vs_MEA": 1.4385204692259637,
+          "model_vs_MEA": 1.5348779138520126,
           "xu_vs_MEA": 1.68
         },
         {
           "solvent": "5 m MDEA / 5 m PZ",
           "model": 0.7464969782416286,
           "xu_2011": 0.98,
-          "model_vs_MEA": 2.067677468235517,
+          "model_vs_MEA": 2.2061781857520617,
           "xu_vs_MEA": 1.96
         }
       ],
       "calibrated": [
         {
           "solvent": "7 m MEA",
-          "model": 0.361031635595789,
+          "model": 0.33836658483102355,
           "xu_2011": 0.5,
           "model_vs_MEA": 1.0,
           "xu_vs_MEA": 1.0
@@ -260,22 +265,82 @@
           "solvent": "8 m PZ",
           "model": 0.8382368824522552,
           "xu_2011": 0.85,
-          "model_vs_MEA": 2.321782358681568,
+          "model_vs_MEA": 2.477303965670432,
           "xu_vs_MEA": 1.7
         },
         {
           "solvent": "7 m MDEA / 2 m PZ",
           "model": 0.5087667652452954,
           "xu_2011": 0.84,
-          "model_vs_MEA": 1.409202726530344,
+          "model_vs_MEA": 1.5035963598455437,
           "xu_vs_MEA": 1.68
         },
         {
           "solvent": "5 m MDEA / 5 m PZ",
           "model": 0.7034847006000614,
           "xu_2011": 0.98,
-          "model_vs_MEA": 1.9485403251134559,
+          "model_vs_MEA": 2.079060794231126,
           "xu_vs_MEA": 1.96
+        }
+      ]
+    },
+    "Dugas2009_heldout": {
+      "n_points": 105,
+      "by_system": {
+        "MEA": {
+          "n": 50,
+          "mae_loading_per_alkalinity": 0.012342775247939006,
+          "bias_loading_per_alkalinity": -0.012253921863416603,
+          "coverage90_with_AMP_PZ_margin": 1.0
+        },
+        "MEA/PZ": {
+          "n": 12,
+          "mae_loading_per_alkalinity": 0.008646162278211762,
+          "bias_loading_per_alkalinity": -0.0009058362476718876,
+          "coverage90_with_AMP_PZ_margin": 1.0
+        },
+        "PZ": {
+          "n": 43,
+          "mae_loading_per_alkalinity": 0.011495269858653418,
+          "bias_loading_per_alkalinity": -0.008949585440070615,
+          "coverage90_with_AMP_PZ_margin": 1.0
+        }
+      },
+      "capacity_benchmark": [
+        {
+          "solvent": "7 m MEA",
+          "model": 0.33836658483102355,
+          "dugas_2009": 0.32776955098530797,
+          "model_vs_MEA": 1.0,
+          "dugas_vs_MEA": 1.0
+        },
+        {
+          "solvent": "8 m PZ",
+          "model": 0.8382368824522552,
+          "dugas_2009": 0.8415735442097132,
+          "model_vs_MEA": 2.477303965670432,
+          "dugas_vs_MEA": 2.567576950573533
+        },
+        {
+          "solvent": "7 m MEA / 2 m PZ",
+          "model": 0.5375291882273943,
+          "dugas_2009": 0.5971308620188728,
+          "model_vs_MEA": 1.5886000932858966,
+          "dugas_vs_MEA": 1.8218008970749047
+        },
+        {
+          "solvent": "5 m PZ",
+          "model": 0.628886691632815,
+          "dugas_2009": 0.6212807872002716,
+          "model_vs_MEA": 1.8585957355891802,
+          "dugas_vs_MEA": 1.8954804841774946
+        },
+        {
+          "solvent": "13 m MEA",
+          "model": 0.4404020612039115,
+          "dugas_2009": 0.38746530257248496,
+          "model_vs_MEA": 1.3015530520658336,
+          "dugas_vs_MEA": 1.1821272031148886
         }
       ]
     },
@@ -283,9 +348,9 @@
       {
         "solvent": "7 m MEA",
         "xu_2011": 72.0,
-        "model_40C": 74.96672172267901,
-        "model_80C": 76.26857140936026,
-        "model_120C": 73.32452030494285
+        "model_40C": 75.87468960133823,
+        "model_80C": 76.94427637629883,
+        "model_120C": 73.54750568676366
       },
       {
         "solvent": "8 m PZ",
@@ -315,7 +380,7 @@
       "smiles": "NCCO",
       "mw": 61.08,
       "source": "calibrated",
-      "note": "MAP fit to 98 pCO2-loading points",
+      "note": "MAP fit to 236 pCO2-loading points",
       "species": [
         {
           "name": "MEA",
@@ -334,10 +399,10 @@
           "name": "MEAH+",
           "h": 1,
           "c": 0,
-          "logK25": 10.148411807802626,
-          "dH": -49.916872328951726,
-          "sd_logK": 0.09217417077633566,
-          "sd_dH": 2.699309780754434,
+          "logK25": 10.19510896277372,
+          "dH": -50.95681534495792,
+          "sd_logK": 0.09351433706670663,
+          "sd_dH": 3.816744093807388,
           "dCp": 0.0,
           "b_conc": 0.0,
           "sd_dCp": 0.0,
@@ -347,10 +412,10 @@
           "name": "MEACOO-",
           "h": 0,
           "c": 1,
-          "logK25": 1.4600635869867675,
-          "dH": -22.94727728877655,
-          "sd_logK": 0.10954257869981746,
-          "sd_dH": 3.2768940327734533,
+          "logK25": 1.5215003115770627,
+          "dH": -23.875475544223587,
+          "sd_logK": 0.10850994995837433,
+          "sd_dH": 4.938380968108591,
           "dCp": 0.0,
           "b_conc": 0.0,
           "sd_dCp": 0.0,

@@ -1,7 +1,11 @@
 """
 Calibrate the equilibrium model against experimental VLE (pCO2 vs loading) data.
 
-    MEA  <- Wagner et al. (2013)             (NIST ThermoML, pCO2 <= 2000 kPa)
+    MEA  <- Wagner et al. (2013)             (NIST ThermoML, pCO2 <= 2000 kPa, 313-393 K)
+            + Aronu et al. (2011)            (15-60 mass%, 40-80 C, measured pCO2 0.0007-19 kPa)
+    MEA, PZ, MEA+PZ <- Dugas (2009)          HELD OUT: wetted-wall column, MEA and PZ in the same
+                                             apparatus -> like-for-like capacity benchmark
+                                             (the ranking-relevant PZ : MEA ratio)
     AMP  <- Hartono et al. (2020)            (rows with a measured CO2 partial pressure)
     PZ   <- Ermatchkov et al. (2006)
     MDEA <- JOINT fit, after PZ: Leontiadis et al. (2019) + Dey et al. (2018) single-MDEA VLE
@@ -114,7 +118,18 @@ def load_data() -> dict:
             "label": [f"{s.split(' et')[0]} {m:.1f} m" for s, m in zip(g["source"], g["m_amine"])],
         })
 
-    out = {"MEA": single["MEA"], "MDEA": single["MDEA"], "AMP": amp, "PZ": pz, "AMP+PZ": blend}
+    # Aronu (2011): measured pCO2 at 40-80 C, 15-60 mass% MEA (src/data/ingest_aronu2011_mea.py).
+    # Fills the lean/absorber region Wagner barely covers (Wagner starts at 1.4 kPa at 40 C).
+    # Adding it with the same 4 free constants was chosen over adding a concentration term
+    # (b_conc): the term fit Aronu better in-sample but failed leave-one-concentration-out at
+    # 60 mass% (MAE 0.025 vs 0.017) and did not improve the held-out Dugas checks. LOG.md.
+    a = pd.read_csv(ROOT / "data" / "interim" / "mea_aronu2011.csv")
+    aronu = pd.DataFrame({"T": a["T"].astype(float), "p": a["pCO2_kPa"].astype(float),
+                          "m_MEA": a["m_amine"].astype(float), "loading": a["loading"].astype(float),
+                          "label": [f"Aronu {w} wt%" for w in a["w_amine_pct"]]})
+    mea = pd.concat([single["MEA"], aronu], ignore_index=True)
+
+    out = {"MEA": mea, "MDEA": single["MDEA"], "AMP": amp, "PZ": pz, "AMP+PZ": blend}
     for df in out.values():
         for n in CORE_NAMES:
             if f"m_{n}" not in df:
@@ -404,6 +419,100 @@ def capacity_benchmark(models: dict) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Held-out MEA / PZ / MEA+PZ (Dugas 2009 thesis, wetted-wall column)
+# ---------------------------------------------------------------------------
+# Xu's Table 2-12 MEA capacity (0.50) comes from his concentration-independent empirical
+# fit over 2.9-24.6 m MEA and 40-150 C; at 40 C it reads 7 m MEA 0.01-0.03 mol/mol too high
+# at 5 kPa. Measured 7 m MEA data give 0.30-0.33 mol/kg (Aronu 2011, Wagner 2013, Dugas 2009),
+# so the like-for-like benchmark below uses Dugas' measured points, where MEA and PZ come
+# from the same apparatus.
+DUGAS_CAPACITY = {"7 m MEA": (7.0, 0.0), "8 m PZ": (0.0, 8.0), "7 m MEA / 2 m PZ": (7.0, 2.0),
+                  "5 m PZ": (0.0, 5.0), "13 m MEA": (13.0, 0.0)}
+
+
+def mea_interlab_inflation(models: dict, target: float = 0.90) -> tuple:
+    """Smallest factor k on MEA's parameter sd so the parameter-only 90 % interval covers
+    `target` of the independent Dugas (2009) MEA points. The pooled Wagner + Aronu fit
+    (chi2_red < 1) halves the posterior sd, but that only reflects within-lab scatter: on
+    another lab's data the raw intervals cover ~62 %. An under-stated MEA spread would make
+    candidates look robustly better than the MEA reference (score_lo90 > 0) for the wrong
+    reason. Dugas sets this width only; it never enters the point fit."""
+    df = load_dugas()
+    df = df[df["system"] == "MEA"].reset_index(drop=True)
+    obs = df["loading"].to_numpy()
+    raw = None
+    for k in np.arange(1.0, 8.01, 0.25):
+        _, lo, hi = mc_interval(df, models, inflate=k)
+        cov = coverage(obs, lo, hi)
+        raw = cov if raw is None else raw
+        if cov >= target:
+            return float(k), raw, cov
+    return float(k), raw, cov
+
+
+def load_dugas() -> pd.DataFrame:
+    d = pd.read_csv(ROOT / "data" / "interim" / "dugas2009_wwc.csv")
+    df = pd.DataFrame({"T": d["T"], "p": d["pCO2_kPa"], "m_MEA": d["m_MEA"], "m_PZ": d["m_PZ"],
+                       "loading": d["loading"], "system": d["system"],
+                       "alkalinity_m": d["alkalinity_m"],
+                       "loading_per_alkalinity": d["loading_per_alkalinity"],
+                       "label": [f"Dugas {s} {a:g}/{z:g} m" for s, a, z in
+                                 zip(d["system"], d["m_MEA"], d["m_PZ"])]})
+    for n in CORE_NAMES:
+        if f"m_{n}" not in df:
+            df[f"m_{n}"] = 0.0
+    return df
+
+
+def _data_loading_at(g: pd.DataFrame, p_kpa: float) -> float:
+    """Log-linear interpolation of measured loading (per alkalinity) at pCO2 = p (linear
+    extrapolation from the last two points if p is just beyond the data, e.g. 7 m MEA)."""
+    g = g.sort_values("p")
+    lp, a = np.log(g["p"].to_numpy()), g["loading_per_alkalinity"].to_numpy()
+    x = np.log(p_kpa)
+    if x <= lp[-1]:
+        return float(np.interp(x, lp, a))
+    return float(a[-1] + (a[-1] - a[-2]) / (lp[-1] - lp[-2]) * (x - lp[-1]))
+
+
+def dugas_validation(models: dict, q_hat: float) -> tuple:
+    df = load_dugas()
+    nominal, lo, hi = mc_interval(df, models)
+    obs = df["loading"].to_numpy()
+    scale = ((df["m_MEA"] + df["m_PZ"]) / df["alkalinity_m"]).to_numpy()
+    err = (nominal - obs) * scale
+    report = {"n_points": len(df), "by_system": {}}
+    for s in pd.unique(df["system"]):
+        mk = (df["system"] == s).to_numpy()
+        report["by_system"][s] = {
+            "n": int(mk.sum()),
+            "mae_loading_per_alkalinity": float(np.mean(np.abs(err[mk]))),
+            "bias_loading_per_alkalinity": float(np.mean(err[mk])),
+            "coverage90_with_AMP_PZ_margin": coverage(obs[mk], lo[mk] - q_hat, hi[mk] + q_hat),
+        }
+    # like-for-like capacity at 40 C, PCO2* 0.5 -> 5 kPa
+    rows = []
+    mixes = [[(models[n], m) for n, m in (("MEA", a), ("PZ", z)) if m > 0]
+             for a, z in DUGAS_CAPACITY.values()]
+    b = compile_batch(mixes)
+    lean = solve(b, 313.15, 0.5)["n_co2"]
+    rich = solve(b, 313.15, 5.0)["n_co2"]
+    cap_model = (rich - lean) / b.solvent_kg_per_kg_water
+    d40 = df[np.isclose(df["T"], 313.15)]
+    for (name, (a, z)), cm in zip(DUGAS_CAPACITY.items(), cap_model):
+        g = d40[np.isclose(d40["m_MEA"], a) & np.isclose(d40["m_PZ"], z)]
+        alk = a + 2 * z
+        cap_data = (_data_loading_at(g, 5.0) - _data_loading_at(g, 0.5)) * alk / (
+            1.0 + (a * 61.08 + z * 86.14) / 1000.0)
+        rows.append({"solvent": name, "model": float(cm), "dugas_2009": cap_data})
+    cap = pd.DataFrame(rows)
+    cap["model_vs_MEA"] = cap["model"] / cap["model"].iloc[0]
+    cap["dugas_vs_MEA"] = cap["dugas_2009"] / cap["dugas_2009"].iloc[0]
+    report["capacity_benchmark"] = cap.to_dict(orient="records")
+    return df, nominal, lo - q_hat, hi + q_hat, report, cap
+
+
+# ---------------------------------------------------------------------------
 # Figures
 # ---------------------------------------------------------------------------
 def parity_plot(ax, df, pred, title, lo=None, hi=None):
@@ -465,6 +574,16 @@ def main():
               f"AARD={stats['aard_pct']:.1f}%  chi2_red={stats['chi2_reduced']:.2f}")
         for k, v in stats["params"].items():
             print(f"    {k:22s} prior {v['prior']:8.2f} -> fit {v['fit']:8.3f} +/- {v['sd']:.3f}")
+
+    # MEA parameter sd: widen to inter-laboratory scale (see mea_interlab_inflation)
+    k_mea, cov_raw, cov_k = mea_interlab_inflation(models)
+    mea = models["MEA"]
+    models["MEA"] = _set(mea, {(s.name, f): getattr(s, f) * k_mea for s in mea.species
+                               for f in ("sd_logK", "sd_dH")})
+    report["MEA"]["interlab_sd_inflation"] = {"factor": k_mea, "dugas_coverage90_raw": cov_raw,
+                                              "dugas_coverage90_inflated": cov_k}
+    print(f"MEA sd inflated x{k_mea:.2f} to inter-lab scale: parameter-only 90% coverage on "
+          f"Dugas 2009 MEA {cov_raw:.2f} -> {cov_k:.2f}")
 
     # held-out blend
     blend = data["AMP+PZ"]
@@ -530,6 +649,21 @@ def main():
         print(f"    {r2.solvent:18s} Xu {r2.xu_vs_MEA:.2f} | priors {r0.model_vs_MEA:.2f} | "
               f"MDEA literature prior {r1.model_vs_MEA:.2f} | calibrated {r2.model_vs_MEA:.2f} "
               f"(abs {r2.model:.2f} vs {r2.xu_2011:.2f})")
+    print("    (Xu's MEA value is from a concentration-independent empirical fit; the measured "
+          "like-for-like benchmark is Dugas 2009 below)")
+
+    # held-out MEA / PZ / MEA+PZ (Dugas 2009) + like-for-like capacity benchmark
+    ddf, d_nom, d_lo, d_hi, drep, dcap = dugas_validation(models, q_hat)
+    report["Dugas2009_heldout"] = drep
+    print(f"Dugas 2009 HELD OUT (wetted-wall column, n={drep['n_points']}):")
+    for s, v in drep["by_system"].items():
+        print(f"    {s:6s} n={v['n']:2d}  MAE {v['mae_loading_per_alkalinity']:.3f} mol/mol alkalinity "
+              f"(bias {v['bias_loading_per_alkalinity']:+.3f}); 90% coverage with margin "
+              f"{v['coverage90_with_AMP_PZ_margin']:.2f}")
+    print("Capacity benchmark, MEASURED (Dugas 2009, 40 C, 0.5 -> 5 kPa; ratio to 7 m MEA):")
+    for r in dcap.itertuples():
+        print(f"    {r.solvent:18s} data {r.dugas_vs_MEA:.2f} | model {r.model_vs_MEA:.2f} "
+              f"(abs {r.model:.3f} vs {r.dugas_2009:.3f} mol/kg)")
     hb_x = heat_benchmark(models)
     report["heat_benchmark_Xu2011"] = hb_x.to_dict(orient="records")
     print("Heat-of-absorption benchmark (Xu 2011 Table 2-12, kJ/mol; model at 40/80/120 C):")
@@ -548,9 +682,9 @@ def main():
     print("saved", PARAMS_JSON.relative_to(ROOT))
 
     # figures
-    titles = {"MEA": "MEA (Wagner 2013) - fitted", "MDEA": "MDEA (Leontiadis 2019, Dey 2018, + Xu 2011 MDEA+PZ) - fitted",
+    titles = {"MEA": "MEA (Wagner 2013 + Aronu 2011) - fitted", "MDEA": "MDEA (Leontiadis 2019, Dey 2018, + Xu 2011 MDEA+PZ) - fitted",
               "AMP": "AMP (Hartono 2020) - fitted", "PZ": "PZ (Ermatchkov 2006) - fitted"}
-    fig, axes = plt.subplots(2, 4, figsize=(20, 9.6))
+    fig, axes = plt.subplots(3, 3, figsize=(16, 14.4))
     for ax, name in zip(axes.flat, CORE_NAMES):
         parity_plot(ax, data[name], fitted_pred[name], titles[name])
     parity_plot(axes.flat[4], blend, nominal,
@@ -559,14 +693,23 @@ def main():
                 f"MDEA+PZ (Xu 2011, 100-160 C) - in MDEA fit\nleave-one-blend-out MAE "
                 f"{max(v['mae_loading_per_alkalinity'] for v in xrep['leave_one_blend_out'].values()):.3f}; 90% "
                 f"coverage {xrep['coverage90_with_AMP_PZ_margin']:.2f}", x_lo, x_hi)
+    parity_plot(axes.flat[8], ddf, d_nom, "MEA, PZ, MEA+PZ (Dugas 2009) - HELD OUT\n"
+                "loading per mol amine; 90% CQR bands", d_lo, d_hi)
     ax = axes.flat[7]
-    y = np.arange(len(cap_after))
-    ax.plot(cap_after["xu_vs_MEA"], y, "o", ms=9, color="#0b0b0b", label="Xu (2011) Table 2-12")
-    ax.plot(cap_before["model_vs_MEA"], y, "s", ms=7, mfc="none", color="#8c8b86",
-            label="model, MDEA literature prior")
-    ax.plot(cap_after["model_vs_MEA"], y, "D", ms=7, color="#2a78d6", label="model, calibrated")
-    ax.set_yticks(y)
-    ax.set_yticklabels(cap_after["solvent"])
+    # rows: Dugas solvents (measured, like-for-like), then Xu's MDEA/PZ blends (vs Xu's 7 m MEA)
+    xu_rows = cap_after[cap_after["solvent"].str.contains("MDEA")]
+    labels = [f"{s} (Dugas)" for s in dcap["solvent"]] + [f"{s} (Xu)" for s in xu_rows["solvent"]]
+    yd = np.arange(len(dcap))
+    yx = len(dcap) + np.arange(len(xu_rows))
+    ax.plot(dcap["dugas_vs_MEA"], yd, "o", ms=9, color="#0b0b0b", label="measured (Dugas 2009)")
+    ax.plot(xu_rows["xu_vs_MEA"], yx, "o", ms=9, mfc="none", color="#0b0b0b",
+            label="Xu (2011) Table 2-12 (empirical fits)")
+    ax.plot(cap_before.loc[xu_rows.index, "model_vs_MEA"], yx, "s", ms=7, mfc="none",
+            color="#8c8b86", label="model, MDEA literature prior")
+    ax.plot(np.r_[dcap["model_vs_MEA"], xu_rows["model_vs_MEA"]], np.r_[yd, yx], "D", ms=7,
+            color="#2a78d6", label="model, calibrated")
+    ax.set_yticks(np.r_[yd, yx])
+    ax.set_yticklabels(labels, fontsize=8)
     ax.invert_yaxis()
     ax.axvline(1.0, color="0.6", lw=0.8)
     ax.set_xlabel("cyclic capacity relative to 7 m MEA\n(40 C, PCO2* 0.5 -> 5 kPa)")

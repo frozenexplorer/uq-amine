@@ -281,8 +281,8 @@ def main():
         "counts": df["color"].value_counts().to_dict(),
         "runtime_s": round(time.time() - t0, 1),
         "caveats": [
-            "MDEA in blends: valued within -16 % (7/2 MDEA/PZ) .. +0 % (5/5) of Xu (2011) vs MEA; model-form sd on the MDEA concentration term covers the remaining ambiguity",
-            "MEA absorber-side capacity (40 C, 0.5-5 kPa) under-predicted (0.36 vs 0.50 mol/kg, Xu 2011), so PZ-rich mixtures are over-valued vs MEA by up to ~35 %",
+            "MDEA in blends: valued within -11 % (7/2 MDEA/PZ) .. +6 % (5/5) of Xu (2011) empirical fits relative to MEA; no measured 40 C MDEA+PZ capacity data yet; model-form sd on the MDEA concentration term covers the remaining ambiguity",
+            "PZ vs MEA checked like-for-like on measured data (Dugas 2009, held out; 40 C, 0.5-5 kPa): 8 m PZ 2.48x vs 2.57x measured, 7/2 MEA/PZ 1.59x vs 1.82x -- PZ and MEA+PZ mixtures are, if anything, slightly UNDER-valued vs MEA (the earlier 'PZ over-valued ~35 %' caveat came from Xu's empirical MEA fit, which over-states 7 m MEA capacity: 0.50 vs 0.30-0.33 measured)",
             "library partner constants come from OPERA pKa + structure-class priors",
             "equilibrium short-cut process model: for ranking, not plant design",
             "cost, corrosion, degradation, viscosity, volatility not yet included",

@@ -51,7 +51,7 @@ from src.thermo.calibrated import load_core_models
 from src.thermo.chemistry import CORE_NAMES, MW_CO2, core_amines
 from src.thermo.equilibrium import compile_batch
 
-from .process import SCENARIOS, evaluate
+from .process import KJ_PER_MOL_TO_GJ_PER_T, SCENARIOS, evaluate
 
 ROOT = Path(__file__).resolve().parents[2]
 SCREEN = ROOT / "data" / "processed" / "screening"
@@ -61,8 +61,7 @@ SEED = 2026
 TOTAL_WT = 30.0
 MIN_VENDORS = 5
 MAX_RICH_VISCOSITY = 30.0   # mPa s at 40 C, the limit used in published solvent screening
-PZ_RISK_WT = 20.0           # above this, flag precipitation risk if lean loading is low
-PZ_RISK_LEAN_ALPHA = 0.25   # mol CO2 / mol N, the limit for 8 m PZ at 22 C (conservative here)
+PZ_LIQUIDUS_WARN_C = 25.0   # unloaded solvent that solidifies above room temperature is flagged
 CORROSION_FLAG = 2.0        # index above which carbon steel needs inhibitor or stainless
 
 # (low, median, high) = 90 % range. $ and kg per tonne CO2 unless stated.
@@ -72,7 +71,8 @@ SCALARS = {
     "heat_coal": (2.5, 3.4, 5.0),          # $/GJ: LLNL lost-generation value of the steam
     "makeup_floor": (0.2, 0.3, 0.5),       # kg/t, losses that do not depend on oxidation
     "makeup_ox_mea": (0.5, 1.2, 2.7),      # kg/t, oxidative and thermal loss of MEA
-    "vapour_mea_coal": (0.01, 0.05, 0.2),  # kg/t after water wash, 13 kPa flue gas
+    "vapour_mea_coal": (0.005, 0.02, 0.1),  # kg/t after a 98 % water wash, 13 kPa flue gas; from
+                                            # 0.0056 kPa over lean 7 m MEA at 40 C (Hilliard 2008)
     "corrosion_mea": (0.3, 1.0, 3.0),      # $/t (assumption)
     "viscosity_base": (1.0, 3.0, 6.0),     # $/t (assumption)
 }
@@ -181,10 +181,10 @@ def amine_table(pinfo: pd.DataFrame, avail: pd.DataFrame) -> pd.DataFrame:
 
 
 def _vapour_reference(pinfo: pd.DataFrame) -> dict:
-    """Volatility relative to MEA. Core amines from the loaded-solution order reported by
-    Nguyen et al. (2010): PZ and MDEA effectively non-volatile, AMP above MEA. Partners from
-    OPERA vapour pressure where it exists, otherwise from the boiling point."""
-    out = {"MEA": 1.0, "MDEA": 0.05, "AMP": 2.0, "PZ": 0.1}
+    """Volatility relative to MEA. PZ is measured: lean 5 m PZ against lean 7 m MEA at 40 C
+    (Hilliard 2008). AMP and MDEA follow the loaded-solution order of Nguyen et al. (2010).
+    Partners use OPERA vapour pressure where it exists, otherwise the boiling point."""
+    out = {"MEA": 1.0, "MDEA": 0.05, "AMP": 2.0, "PZ": 0.45}
     log_vp_mea = np.log10(0.4)           # mmHg at 25 C, handbook value
     bp_mea = 170.0
     for r in pinfo.itertuples():
@@ -211,7 +211,7 @@ def composition_matrix(df: pd.DataFrame, names: list) -> np.ndarray:
 
 
 def compute(df: pd.DataFrame, t: pd.DataFrame, cap: dict, q: dict, mea_idx: int,
-            overrides: dict | None = None) -> pd.DataFrame:
+            overrides: dict | None = None, pz_heat_uplift: float = 0.0) -> pd.DataFrame:
     names = list(t.index)
     k = next(iter(cap.values())).shape[1]
     W = composition_matrix(df, names)
@@ -240,6 +240,7 @@ def compute(df: pd.DataFrame, t: pd.DataFrame, cap: dict, q: dict, mea_idx: int,
     a_w = (W / 100.0) @ t["visc_a"].to_numpy()
     mu_rich = visc["mu_water_40C_mpas"] * np.exp(a_w * (1.0 + visc["b"] * alpha_rich))
 
+    f_pz = 2.0 * n_mol[:, names.index("PZ")] / n_N       # PZ share of the basic N
     out = df[["mixture_id"]].copy()
     out["alpha_rich_per_N"] = alpha_rich
     out["alpha_lean_per_N"] = alpha_lean
@@ -248,11 +249,14 @@ def compute(df: pd.DataFrame, t: pd.DataFrame, cap: dict, q: dict, mea_idx: int,
     out["oxidation_index"] = frac @ t["oxidation_med"].to_numpy()
     out["volatility_index"] = frac @ t["volatility"].to_numpy()
     out["price_per_kg_amine"] = frac @ t["price_med"].to_numpy()
+    sle = pd.read_csv(ROOT / "data" / "interim" / "hilliard2008_pz_sle.csv")
+    out["pz_liquidus_C"] = np.where(df["wt_PZ"] > 0, np.interp(df["wt_PZ"] / 100.0, sle["w_PZ"], sle["liquidus_C"]), np.nan)
 
     total = {}
     comp = {}
     for s in SCENARIOS:
-        c, g = cap[s], q[s]
+        c = cap[s]
+        g = q[s] + pz_heat_uplift * KJ_PER_MOL_TO_GJ_PER_T * f_pz[:, None]
         kappa = sc["q_mea_pilot"] / g[mea_idx]               # (k,) pilot / model for MEA
         q_real = g * kappa
         heat = sc[f"heat_{s}"]
@@ -307,8 +311,8 @@ def flags(df: pd.DataFrame, t: pd.DataFrame) -> pd.DataFrame:
                 e.append(f"{p} not purchasable")
         if r.mu_rich_mpas > MAX_RICH_VISCOSITY:
             e.append(f"rich viscosity {r.mu_rich_mpas:.0f} mPa s")
-        if r.wt_PZ >= PZ_RISK_WT and r.alpha_lean_per_N < PZ_RISK_LEAN_ALPHA:
-            w.append("PZ precipitation risk at low loading: keep warm, avoid cold start")
+        if r.pz_liquidus_C >= PZ_LIQUIDUS_WARN_C:
+            w.append(f"fresh solvent solidifies below about {r.pz_liquidus_C:.0f} C: prepare and store warm")
         if r.corrosion_index >= CORROSION_FLAG:
             w.append("corrosive to carbon steel: needs inhibitor or stainless")
         excl.append("; ".join(e))
@@ -353,12 +357,45 @@ def energy_check() -> dict:
         out["model"][s] = {"q_mea_gj_per_t": float(q[0]), "q_cesar1_gj_per_t": float(q[1]),
                            "ratio_cesar1_to_mea": float(q[1] / q[0])}
     out["measured_ratio"] = {k: round(c / m, 3) for k, (c, m) in ENERGY_BENCHMARK.items()}
+    # Extra PZ heat the benchmarks can tolerate: CESAR1's ratio may rise to the highest reported.
+    n_pz, n_amp = 13.0 / core["PZ"].mw, 27.0 / core["AMP"].mw
+    f_pz = 2.0 * n_pz / (2.0 * n_pz + n_amp)
+    top = max(out["measured_ratio"].values())
+    out["pz_heat_uplift_allowed_by_benchmarks"] = float(min(
+        (top * m["q_mea_gj_per_t"] - m["q_cesar1_gj_per_t"]) / (KJ_PER_MOL_TO_GJ_PER_T * f_pz)
+        for m in out["model"].values()))
+    out["cesar1_ratio_with_full_calorimetric_heat"] = None
     return out
 
 
 def _top(res: pd.DataFrame, ok: np.ndarray, color: np.ndarray, which: str, n: int) -> set:
     g = res[ok & (color == which)]
     return set(g.nsmallest(n, "cost_both")["mixture_id"])
+
+
+def pz_heat_stress(df, t, cap, q, mea_idx, ok, uplift: float, n: int = 20) -> dict:
+    """What if Hilliard's calorimetry, not the VLE-based heat, is right at the stripper? The model's
+    heat comes from VLE measured up to 120 C and the pilot CESAR1 : MEA ratio supports it, but
+    calorimetry reads higher in proportion to PZ's share of the N. Not used in the ranking."""
+    c1 = {s: v[:, :1] for s, v in cap.items()}
+    q1 = {s: v[:, :1] for s, v in q.items()}
+    color = df["color"].to_numpy()
+    base = compute(df, t, c1, q1, mea_idx)
+    res = compute(df, t, c1, q1, mea_idx, pz_heat_uplift=uplift)
+
+    def best(which):
+        g = res[ok & (color == which)].nlargest(1, "saving_vs_mea").iloc[0]
+        return {"composition": df.set_index("mixture_id").loc[g["mixture_id"], "composition"],
+                "saving": float(g["saving_vs_mea"])}
+
+    pz = np.flatnonzero((df["composition"] == "PZ 30%").to_numpy())[0]
+    return {"uplift_kj_per_mol_at_all_N_as_PZ": uplift,
+            "pz_30_saving": float(res["saving_vs_mea"].iloc[pz]),
+            "n_cheaper_than_mea": int((res["saving_vs_mea"][ok] > 0).sum()),
+            "n_cheaper_base": int((base["saving_vs_mea"][ok] > 0).sum()),
+            "best": {c: best(c) for c in ("yellow", "blue")},
+            "kept_in_top_n": {c: len(_top(base, ok, color, c, n) & _top(res, ok, color, c, n))
+                              for c in ("yellow", "blue")}}
 
 
 def sensitivity(df, t, cap, q, mea_idx, ok, n: int = 20) -> dict:
@@ -398,11 +435,23 @@ def main():
     full = pd.concat([full, flags(full, t)], axis=1)
     full = rank(full)
     full.to_csv(SCREEN / "mixtures_practical.csv", index=False)
-    checks = {"energy": energy_check(),
-              "sensitivity": sensitivity(df, t, cap, q, mea_idx, full["practical_ok"].to_numpy())}
+    ok_mask = full["practical_ok"].to_numpy()
+    fit = json.loads((ROOT / "data" / "processed" / "thermo" / "calibrated_core_amines.json").read_text())
+    uplift = -fit["fit_report"]["Hilliard2008_heats"]["bias_at_120C_vs_PZ_N_fraction"]["slope"]
+    energy = energy_check()
+    allowed = energy["pz_heat_uplift_allowed_by_benchmarks"]
+    n_pz, n_amp = 13.0 / 86.14, 27.0 / 89.14
+    m = energy["model"]["coal"]
+    energy["cesar1_ratio_with_full_calorimetric_heat"] = float(
+        (m["q_cesar1_gj_per_t"] + uplift * KJ_PER_MOL_TO_GJ_PER_T * 2 * n_pz / (2 * n_pz + n_amp)) / m["q_mea_gj_per_t"])
+    checks = {"energy": energy,
+              "sensitivity": sensitivity(df, t, cap, q, mea_idx, ok_mask),
+              "pz_heat_stress": {"full_calorimetry": pz_heat_stress(df, t, cap, q, mea_idx, ok_mask, uplift),
+                                 "benchmark_limit": pz_heat_stress(df, t, cap, q, mea_idx, ok_mask, allowed)}}
     (INPUTS / "checks.json").write_text(json.dumps(checks, indent=2))
     print(json.dumps(checks["energy"], indent=2))
     print("list stability:", checks["sensitivity"]["worst_case"], "of", checks["sensitivity"]["top_n"])
+    print("PZ heat stress test:", json.dumps(checks["pz_heat_stress"], indent=2))
     t.drop(columns=["price_basis", "oxidation_basis", "corrosion_basis"]).to_csv(SCREEN / "amines_practical.csv")
 
     ok = full[full["practical_ok"]]

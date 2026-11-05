@@ -88,6 +88,7 @@ def table(df: pd.DataFrame, amines: pd.DataFrame) -> pd.DataFrame:
         "makeup_kg_per_t": df["coal_makeup_kg_per_t"], "amine_price_usd_per_kg": df["price_per_kg_amine"],
         "rich_viscosity_mpas": df["mu_rich_mpas"], "corrosion_index": df["corrosion_index"],
         "oxidation_index": df["oxidation_index"], "volatility_index": df["volatility_index"],
+        "pz_liquidus_C": df["pz_liquidus_C"],
         "capacity_energy_rank": df["rank_both"],
         "data_basis": df["partners"].map(data_basis),
         # first two proportions of each amine combination, so a lab can skip near-duplicates

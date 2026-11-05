@@ -676,6 +676,43 @@ def fit_single_site(name: str, df: pd.DataFrame, heat: float | None = None) -> t
                    "sd": sd.tolist()}
 
 
+# ---------------------------------------------------------------------------
+# Hilliard (2008): held-out loading check, and calorimetry against the model's VLE-based heats
+# ---------------------------------------------------------------------------
+def _mea_pz_mix(models, m_mea, m_pz):
+    return [(models[n], m) for n, m in (("MEA", m_mea), ("PZ", m_pz)) if m > 0]
+
+
+def hilliard_validation(models: dict) -> dict:
+    h = pd.read_csv(ROOT / "data" / "interim" / "hilliard2008_vle.csv")
+    b = compile_batch([_mea_pz_mix(models, r.m_MEA, r.m_PZ) for r in h.itertuples()])
+    n_co2 = solve(b, h["T"].to_numpy(), h["pCO2_kPa"].to_numpy())["n_co2"]
+    h["err"] = n_co2 / (h["m_MEA"] + 2.0 * h["m_PZ"]) - h["loading_per_N"]
+    return {s: {"n": len(g), "mae_per_N": float(g["err"].abs().mean()), "bias_per_N": float(g["err"].mean())}
+            for s, g in h.groupby("system")}
+
+
+def hilliard_heat_check(models: dict) -> dict:
+    """Calorimetric differential heats against the Gibbs-Helmholtz heats of the VLE-fitted model.
+    The two can disagree: the model's heat comes from measured VLE, not from calorimetry."""
+    d = pd.read_csv(ROOT / "data" / "interim" / "hilliard2008_heats.csv")
+    d = d[d["loading_per_N"].between(0.05, 0.45)].copy()
+    model = []
+    for r in d.itertuples():
+        b = compile_batch([_mea_pz_mix(models, r.m_MEA, r.m_PZ)])
+        T = np.array([r.T])
+        p = pco2_at_loading(b, T, np.array([r.loading_per_N * (r.m_MEA + 2.0 * r.m_PZ)]))
+        model.append(float(heat_of_absorption(b, T, np.asarray(p).ravel()[:1])[0]))
+    d["bias"] = np.array(model) - d["dH_kj_per_mol"]
+    d["f_pz"] = 2.0 * d["m_PZ"] / (d["m_MEA"] + 2.0 * d["m_PZ"])
+    table = [{"T_C": round(T - 273.15), "f_pz_N": round(f, 2), "n": len(g),
+              "measured": float(g["dH_kj_per_mol"].mean()), "bias": float(g["bias"].mean())}
+             for (T, f), g in d.groupby(["T", "f_pz"])]
+    hot = pd.DataFrame([r for r in table if r["T_C"] == 120])
+    slope, intercept = np.polyfit(hot["f_pz_N"], hot["bias"], 1)
+    return {"by_group": table, "bias_at_120C_vs_PZ_N_fraction": {"slope": float(slope), "intercept": float(intercept)}}
+
+
 def parity_plot(ax, df, pred, title, lo=None, hi=None):
     obs = df["loading"].to_numpy()
     labels = df["label"].to_numpy()
@@ -831,6 +868,14 @@ def main():
     for r in hb_x.itertuples():
         print(f"    {r.solvent:18s} Xu {r.xu_2011:5.1f} | model {r.model_40C:5.1f} / "
               f"{r.model_80C:5.1f} / {r.model_120C:5.1f}")
+
+    report["Hilliard2008_heldout"] = hilliard_validation(models)
+    print(f"Hilliard 2008 HELD OUT (per mol N): {report['Hilliard2008_heldout']}")
+    report["Hilliard2008_heats"] = hilliard_heat_check(models)
+    print("Hilliard 2008 calorimetry vs model heats:")
+    for r in report["Hilliard2008_heats"]["by_group"]:
+        print(f"    {r['T_C']:3d} C  PZ share of N {r['f_pz_N']:.2f}  n={r['n']:2d}  measured "
+              f"{r['measured']:5.1f}  model bias {r['bias']:+.1f} kJ/mol")
 
     # DETA: the only partner amine with direct CO2 data
     deta_df = pd.read_csv(ROOT / "data" / "interim" / "deta_chang2013.csv").query("amine == 'DETA'")

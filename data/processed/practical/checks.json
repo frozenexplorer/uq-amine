@@ -16,7 +16,9 @@
       "Verhaeghe et al. 2025 (PCCC-8), equal stripper pressure": 0.944,
       "Mertdag thesis, ProMax simulation": 0.8,
       "Frontiers in Energy Research 2024, biomass CHP": 0.792
-    }
+    },
+    "pz_heat_uplift_allowed_by_benchmarks": 7.73116226137282,
+    "cesar1_ratio_with_full_calorimetric_heat": 1.0196661939455878
   },
   "sensitivity": {
     "top_n": 20,
@@ -26,7 +28,7 @@
         "blue": 20
       },
       "q_mea_pilot=high": {
-        "yellow": 20,
+        "yellow": 19,
         "blue": 19
       },
       "heat_cement=low": {
@@ -35,18 +37,18 @@
       },
       "heat_cement=high": {
         "yellow": 19,
-        "blue": 17
+        "blue": 18
       },
       "heat_coal=low": {
         "yellow": 20,
         "blue": 20
       },
       "heat_coal=high": {
-        "yellow": 20,
+        "yellow": 19,
         "blue": 19
       },
       "makeup_floor=low": {
-        "yellow": 20,
+        "yellow": 19,
         "blue": 19
       },
       "makeup_floor=high": {
@@ -58,7 +60,7 @@
         "blue": 19
       },
       "makeup_ox_mea=high": {
-        "yellow": 20,
+        "yellow": 19,
         "blue": 19
       },
       "vapour_mea_coal=low": {
@@ -70,7 +72,7 @@
         "blue": 20
       },
       "corrosion_mea=low": {
-        "yellow": 19,
+        "yellow": 18,
         "blue": 18
       },
       "corrosion_mea=high": {
@@ -89,6 +91,48 @@
     "worst_case": {
       "yellow": 17,
       "blue": 16
+    }
+  },
+  "pz_heat_stress": {
+    "full_calorimetry": {
+      "uplift_kj_per_mol_at_all_N_as_PZ": 24.960850838625028,
+      "pz_30_saving": -2.052267332281005,
+      "n_cheaper_than_mea": 10,
+      "n_cheaper_base": 229,
+      "best": {
+        "yellow": {
+          "composition": "MEA 27.5% + PZ 2.5%",
+          "saving": -0.19746800990790803
+        },
+        "blue": {
+          "composition": "MDEA 5% + DEA 25%",
+          "saving": 0.589195873097573
+        }
+      },
+      "kept_in_top_n": {
+        "yellow": 0,
+        "blue": 4
+      }
+    },
+    "benchmark_limit": {
+      "uplift_kj_per_mol_at_all_N_as_PZ": 7.73116226137282,
+      "pz_30_saving": 0.8068989628666401,
+      "n_cheaper_than_mea": 127,
+      "n_cheaper_base": 229,
+      "best": {
+        "yellow": {
+          "composition": "MEA 2.5% + PZ 27.5%",
+          "saving": 0.8163498339021444
+        },
+        "blue": {
+          "composition": "PZ 20% + DEA 10%",
+          "saving": 0.8600605331341242
+        }
+      },
+      "kept_in_top_n": {
+        "yellow": 17,
+        "blue": 15
+      }
     }
   }
 }

@@ -21,9 +21,11 @@ New ideas go here, not into the current sprint. Scope is a contract.
 - ~~Cost of the mixture~~ and ~~corrosion, degradation, viscosity, volatility, PZ precipitation~~: `src/screening/practical.py` (2026-11-05)
 
 ## Model improvements worth doing next
-- DETA + PZ blend VLE and the 333 K points (Chang 2013 tables; the ThermoML record omits them)
-- DETA above 353 K (Hartono 2009 thesis / 2011 Energy Procedia paper) so the stripper end stops being an extrapolation
-- MEA + PZ blend term: fit on Hilliard (2008) so Dugas (2009) stays held out
-- AMP + PZ interaction (systematic -0.05 mol/mol bias, currently covered by the conformal margin)
-- MDEA + PZ at 40 °C (Speyer 2010, via the BITS library)
+- Measure reboiler duty of PZ against MEA in the lab: it settles the VLE against calorimetry heat question, the largest open uncertainty
+- Loading data above 353 K for DETA, DEA and MPA, from the lab
+- AMP + PZ interaction (systematic -0.05 mol/mol bias, covered by the conformal margin; Dash 2011 is the only data and sets that margin, so fitting it would remove the test)
 - Real supplier quotes in place of market-index and assumed prices
+
+Closed without a model change: an MEA + PZ blend term and PZ high-loading refit. Hilliard (2008), never fitted, shows MEA+PZ MAE 0.011 with no bias and PZ MAE 0.012.
+
+Not available: the paywalled papers (Chang 2013 blend tables, Ghalib 2016 blends, Speyer 2010, Hartono's DETA work). The project finishes without them.

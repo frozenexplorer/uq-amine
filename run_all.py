@@ -40,6 +40,7 @@ STEPS = [
     ("Ingest MDEA+PZ blend data (Xu 2011)", "src.data.ingest_xu2011_mdea_pz", ()),
     ("Ingest MEA data (Aronu 2011)", "src.data.ingest_aronu2011_mea", ()),
     ("Ingest MEA / PZ / MEA+PZ data (Dugas 2009)", "src.data.ingest_dugas2009_mea_pz", ()),
+    ("Ingest MEA / PZ / MEA+PZ data (Hilliard 2008)", "src.data.ingest_hilliard2008", ()),
     ("Calibrate equilibrium model", "src.thermo.calibrate", ()),
     ("Screen mixtures", "src.screening.run_screen", ()),
     ("Practical stage: cost + physical factors", "src.screening.practical", ()),

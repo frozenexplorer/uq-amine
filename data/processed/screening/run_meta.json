@@ -84,7 +84,7 @@
     "yellow": 451,
     "reference": 4
   },
-  "runtime_s": 284.4,
+  "runtime_s": 265.6,
   "caveats": [
     "MDEA in blends: valued within -11 % (7/2 MDEA/PZ) .. +6 % (5/5) of Xu (2011) empirical fits relative to MEA; no measured 40 C MDEA+PZ capacity data yet; model-form sd on the MDEA concentration term covers the remaining ambiguity",
     "DETA, DEA and MPA are calibrated on direct CO2 data, but none above 353 K: the stripper at 393 K is an extrapolation",

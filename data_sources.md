@@ -161,13 +161,13 @@ original articles below.
 ### Checked for the MEA capacity question, not used (2026-10-15)
 
 - **Xu (2011) Table 2-12 MEA capacity (0.50 mol/kg) — retired as an MEA benchmark.** It comes from Xu's Table 2-10 empirical correlation ln P(Pa) = 38.6 − 12379/T − 16.0α² + 3556α/T + 8702α²/T, which has no concentration dependence and was regressed over 2.9–24.6 m MEA and 40–150 °C (Xu's own data plus Jou 1995, Hilliard 2008, Dugas 2008, Ma'mun 2005, Aronu 2011). At 40 °C it reads 7 m MEA 0.01–0.03 mol/mol too high. Its slope from 0.5 to 5 kPa is 0.101 per decade, against 0.061–0.067 measured, so its capacity of 0.50 mol/kg is about 50 % above the measured 0.30–0.33 (Aronu, Wagner, Dugas). Xu's MDEA/PZ entries are still reported in `calibrate.py`, as ratios to his own MEA value.
-- **Hilliard (2008) PhD thesis**, UT Austin, "A Predictive Thermodynamic Model for an Aqueous Blend of Potassium Carbonate, Piperazine, and Monoethanolamine for Carbon Dioxide Capture from Flue Gas." Open copy: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Hilliard-2008-A-Predictive-Thermodynamic-Model-for-an-Aqueous-Blend-of-Potassium-Carbonate-Piperazine-and-Monoethanolamine-for-Car.pdf. Downloaded to `data/raw/hilliard_2008_thesis/` and **not yet transcribed**. It has 3.5/7/11 m MEA and MEA/PZ VLE at 40–60 °C (FTIR equilibrium cell) and would be a fourth independent MEA set plus more MEA+PZ data if needed.
+- **Hilliard (2008) PhD thesis**, UT Austin, "A Predictive Thermodynamic Model for an Aqueous Blend of Potassium Carbonate, Piperazine, and Monoethanolamine for Carbon Dioxide Capture from Flue Gas." Open copy: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Hilliard-2008-A-Predictive-Thermodynamic-Model-for-an-Aqueous-Blend-of-Potassium-Carbonate-Piperazine-and-Monoethanolamine-for-Car.pdf. Local copy in `data/raw/hilliard_2008_thesis/`. **Used from 2026-11-05, see *"Hilliard (2008)"* below.**
 - Jou, Mather & Otto (1995, *Can. J. Chem. Eng.* 73, 140) is still not obtained (paywalled, not in ThermoML).
 
 ### MDEA + PZ sources checked and NOT usable yet (2026-10-15)
 - Not in NIST ThermoML (HTTP 404): Derks et al. 2010 *J. Chem. Thermodyn.* 42, 151 (10.1016/j.jct.2009.07.025); Vahidi et al. 2009 *J. Chem. Thermodyn.* 41, 1272 (10.1016/j.jct.2009.05.017); Hosseini Jenab et al. 2005 *J. Chem. Eng. Data* 50, 583 (10.1021/je049666p); Najibi & Maleki 2013 *Fluid Phase Equilib.* 354, 298 (10.1016/j.fluid.2013.06.022); Ali & Aroua 2004 *Int. J. Thermophys.* 25, 1863 (10.1007/s10765-004-7740-7).
 - In ThermoML but no blend data: Suleman et al. 2018 *Fluid Phase Equilib.* 463, 142 (10.1016/j.fluid.2018.02.016) — only 4 single-MDEA and 4 single-PZ points.
-- Böttger et al. 2009 (10.1021/je900083k) and Speyer et al. 2010 (10.1021/je9003383): paywalled; ThermoML holds densities only. Speyer would add 149 low-loading points at 313–393 K if a copy becomes available (e.g. via the BITS library).
+- Böttger et al. 2009 (10.1021/je900083k) and Speyer et al. 2010 (10.1021/je9003383): paywalled; ThermoML holds densities only. Speyer would add 149 low-loading points at 313–393 K, but no copy could be obtained.
 - Further open UT Austin theses with MDEA/PZ data (not yet pulled): Chen 2011 (https://tdl-ir.tdl.org/handle/2152/ETD-UT-2011-08-4312), Nguyen 2013, Li 2015, Du 2016.
 
 ### DETA — Chang et al. (2013) (added 2026-11-05)
@@ -176,7 +176,7 @@ original articles below.
 - Chang, Y.-C.; Leron, R. B.; Li, M.-H. "Equilibrium solubility of carbon dioxide in aqueous solutions of (diethylenetriamine + piperazine)." *J. Chem. Thermodyn.* **2013**, 64, 106–113. DOI: [10.1016/j.jct.2013.05.005](https://doi.org/10.1016/j.jct.2013.05.005)
 - **Ingestion:** `src/data/ingest_chang2013_deta.py` → `data/interim/deta_chang2013.csv`, from the NIST ThermoML record. 84 DETA points (20 / 30 / 40 wt%, 313.2 and 353.2 K, pCO2 0.8–937 kPa) and 12 MEA points from the same apparatus, used as a laboratory check.
 - **Labelling note:** ThermoML stores composition as the water : amine mass ratio (4 / 2.333 / 1.5 for DETA; 5.536 for the MEA set).
-- **Missing from the record:** the paper's 333.2 K points and all DETA + PZ blend data. The blend tables are the single most useful thing the BITS library could supply.
+- **Missing from the record:** the paper's 333.2 K points and all DETA + PZ blend data. The paper itself could not be obtained.
 - **Limitation:** no data above 353 K, so DETA at the 393 K stripper is an extrapolation.
 
 ### DEA and MPA (added 2026-11-05)
@@ -237,8 +237,8 @@ Stored as low / median / high in `data/processed/practical/amine_inputs.csv`. Ma
 
 ### Volatility and PZ solubility (added 2026-11-05)
 
-- Nguyen, T.; Hilliard, M.; Rochelle, G. T. "Amine volatility in CO2 capture." *Int. J. Greenh. Gas Control* **2010**, 4, 707–715, via IEAGHG information paper 2017-IP38 (https://publications.ieaghg.org/insightpapers/2017-IP38%20Volatility%20of%20amines%20for%20CO2%20capture.pdf). Gives the order only: PZ and MDEA + PZ non-volatile, then EDA, MEA, AMP. Numeric vapour pressures were not obtained, so the core volatility indices are estimates; partners use OPERA vapour pressure or boiling point.
-- US patent 9,321,007, "Blends of amines with piperazine for CO2 capture" (https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/9321007): 8 m PZ needs at least 0.25 mol CO2 / mol alkalinity at 22 °C and precipitates again at 0.44. Used as a conservative warning threshold, since 30 wt% is about 5 m.
+- Nguyen, T.; Hilliard, M.; Rochelle, G. T. "Amine volatility in CO2 capture." *Int. J. Greenh. Gas Control* **2010**, 4, 707–715, via IEAGHG information paper 2017-IP38 (https://publications.ieaghg.org/insightpapers/2017-IP38%20Volatility%20of%20amines%20for%20CO2%20capture.pdf). Gives the order only: PZ and MDEA + PZ non-volatile, then EDA, MEA, AMP. Used for the AMP and MDEA indices, which remain estimates; MEA and PZ are measured (Hilliard 2008), and partners use OPERA vapour pressure or boiling point.
+- US patent 9,321,007, "Blends of amines with piperazine for CO2 capture" (https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/9321007): 8 m PZ needs at least 0.25 mol CO2 / mol alkalinity at 22 °C. Superseded by Hilliard's measured liquidus; no longer used.
 
 ### Energy benchmarks and heat price (added 2026-11-05)
 
@@ -250,3 +250,11 @@ Stored as low / median / high in `data/processed/practical/amine_inputs.csv`. Ma
 ### Availability (added 2026-11-05)
 
 - PubChem PUG REST and PUG View: `src/data/ingest_pubchem_partners.py` → `data/processed/practical/partner_availability.csv`. Vendor count from the "Chemical Vendors" source category. Being listed means a compound can be bought in research quantities, not that it is sold by the tonne.
+
+### Hilliard (2008) (used from 2026-11-05)
+
+- **Status:** `[x]` — **held out for loading; used for volatility and PZ solid solubility.** **Ingestion:** `src/data/ingest_hilliard2008.py` parses Appendices D, H and I from the PDF → `data/interim/hilliard2008_vle.csv`, `hilliard2008_heats.csv`, `hilliard2008_pz_sle.csv`.
+- D.4, D.5, D.7: 158 VLE points (MEA 55, PZ 62, MEA+PZ 41) at 40 and 60 °C, with measured amine partial pressures. Loading is per mol basic N. **PDF-text notes:** the 7 m MEA / 2 m PZ, 40 °C block extracts with its pressure columns one row low, so it is transcribed by hand; the 3.5 m MEA / 3.6 m PZ pCO2 column has one decimal, so points below 0.5 kPa are dropped.
+- H.1, H.4, H.5: differential heats of absorption (NTNU calorimeter), 2.4 m PZ and 7 m MEA + 2 / 3.5 m PZ, 40 / 80 / 120 °C. Used as a check and a stress test, not in the fit: at 120 °C they read up to 22 kJ/mol above the VLE-based model heat.
+- I.1: PZ + water liquidus against PZ mass fraction. It is unloaded and without other amines, so the flag in the lists is indicative for blends.
+

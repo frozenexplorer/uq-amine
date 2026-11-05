@@ -61,16 +61,18 @@ python run_all.py
 
 ## Results
 
-Lab lists (both scenarios, 30 wt% MEA = $20.8/t on this basis):
+Lab lists (both scenarios, 30 wt% MEA = $20.7/t on this basis):
 
 | List | Best mixture | Saving vs MEA, $/t [90 %] | P(cheaper than MEA) |
 |---|---|---|---|
-| Blue | PZ 25% + DEA 5% | +1.96 [-0.58, +5.40] | 0.92 |
-| Yellow | MEA 2.5% + PZ 27.5% | +1.85 [-0.85, +5.37] | 0.92 |
-| Reference | PZ 30% | +1.88 [-1.13, +5.76] | 0.90 |
+| Blue | PZ 25% + DEA 5% | +1.92 [-0.70, +5.34] | 0.92 |
+| Yellow | MEA 2.5% + PZ 27.5% | +1.80 [-0.97, +5.31] | 0.92 |
+| Reference | PZ 30% | +1.85 [-1.26, +5.70] | 0.85 |
 
 - The leaders are PZ-rich and their differences are smaller than the uncertainty: read the top of each list as a group, not an exact order. The best yellow mixtures are effectively PZ alone.
-- 207 of the 20,475 mixtures that pass the practical filter are cheaper than MEA. Moving any assumption to the end of its range keeps at least 16 of each colour's top 20.
+- **Read the saving as about $0.8-1.9/t.** Calorimetry (Hilliard 2008) puts PZ's heat at 120 °C about 22 kJ/mol above the model, whose heat comes from VLE. Published CESAR1 : MEA energy ratios allow at most +7.7 kJ/mol: at that limit the same mixtures lead and PZ still saves $0.81/t. At the full calorimetric value PZ would cost $2.05/t more than MEA, but CESAR1 : MEA would then be 1.02, outside the reported 0.79-0.94. A measured PZ against MEA reboiler duty would settle this.
+- 216 of the 20,475 mixtures that pass the practical filter are cheaper than MEA. Moving any assumption to the end of its range keeps at least 16 of each colour's top 20.
+- **PZ-rich solvents need handling care.** Unloaded 30 wt% PZ solidifies below about 42 °C and 15 wt% below about 25 °C (measured for PZ + water); the lists give this per mixture.
 - On capacity + energy alone, AMP 25% + 1-methyl-3-pyrrolidinol 5% leads, but at an assumed $30/kg for the partner it is not a cheap option. No mixture beats MEA at its 90 % lower bound in both scenarios.
 - **DETA fell.** Direct data (Chang 2013) cut 30 wt% DETA's capacity from 2.9 to 1.55 mol/kg. The former #1, PZ 5% + DETA 25%, is now #4694 and slightly worse than MEA. See `reports/results/ranking_change_deta_dea_mpa.md`.
 
@@ -86,6 +88,7 @@ Model validation:
 | CO₂ loading, DETA | calibrated equilibrium | fit (Chang 2013, 84 pts); leave-one-concentration-out 0.02–0.06 | 0.029 mol/mol (old estimate: 0.44 vs 0.70 measured at 80 °C, 2 kPa) | – |
 | CO₂ loading, DEA | calibrated equilibrium | fit (Ghalib 2016, 15 pts; + Arcis 2012 heats) | 0.015 mol/mol (estimate was 0.126) | – |
 | CO₂ loading, MPA | calibrated equilibrium | fit (Leontiadis 2019, 60 pts) | 0.016 mol/mol (estimate was 0.047) | – |
+| CO₂ loading, MEA / PZ / MEA+PZ, 40–60 °C | calibrated equilibrium | **held out** (Hilliard 2008, 55 / 62 / 41 pts) | 0.020 / 0.012 / 0.011 mol/mol N (MEA+PZ bias −0.001) | – |
 | CO₂ loading, MDEA+PZ blends, 100–160 °C | calibrated equilibrium | **leave-one-blend-out** (Xu 2011) | 0.037 / 0.014 mol/mol alkalinity | 1.00 with conformal margin |
 | CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 mol/mol | 0.30 parameter-only → **0.92** with conformal margin |
 | Capacity vs 7 m MEA (40 °C, 0.5→5 kPa), measured | calibrated equilibrium | like-for-like benchmark (Dugas 2009, held out) | 7 m MEA 0.338 vs 0.328 mol/kg; 8 m PZ 2.48× vs 2.57×; 7/2 MEA/PZ 1.59× vs 1.82× | – |
@@ -99,7 +102,8 @@ Known limits:
 - Wang (2026) measures DETA ternary capacities about 30 % above the model; those values also sit above Chang's pure-DETA data, so the laboratories disagree.
 - DIPA, AEP and the library amines still use structure-based estimates. Those estimates were wrong for DETA, DEA and MPA, so treat them as provisional (the lists mark them `partner estimated`).
 - Many prices, and the corrosion and viscosity cost scales, are assumptions: see `data/processed/practical/amine_inputs.csv` and `SCALARS` in `src/screening/practical.py`.
-- PZ and MEA+PZ are, if anything, slightly under-valued against MEA at the absorber end (−4 % and −13 %).
+- Dugas's 7/2 MEA/PZ capacity is 13 % above the model, but Hilliard's MEA+PZ data show no bias, so no blend term was added. AMP+PZ keeps its −0.05 mol/mol bias, covered by the conformal margin.
+- The practical stage is not a plant design: absorption rate, foaming and nitrosamine formation are not costed.
 
 ## Neo4j
 

@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-ROOT = Path("data")
+ROOT = Path(__file__).resolve().parents[2] / "data"
 
 PROCESSED = ROOT / "processed"
 STRUCTURED = PROCESSED / "structured"

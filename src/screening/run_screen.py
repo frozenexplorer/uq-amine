@@ -5,8 +5,8 @@ Enumerate, score and rank candidate amine mixtures (total amine fixed at 30 wt%)
     YELLOW     >= 2 of the core four (MEA, MDEA, PZ, AMP) only, 2.5 wt% grid
     BLUE       >= 1 core amine + >= 1 partner amine (curated literature + library)
                  stage 1: 1 core + 1 partner, partner at 5..25 wt% (5 wt% steps)
-                 stage 2: best partners -> 2 core + 1 partner and 1 core + 2 partners,
-                          5 wt% grid, every component >= 5 wt%
+                 stage 2: best purchasable partners -> 2 core + 1 partner and 1 core +
+                          2 partners, 5 wt% grid, every component >= 5 wt%
 
 Each mixture is evaluated with Monte Carlo over model parameters (common random
 numbers: sample k uses the same draw of every amine's constants in every mixture),
@@ -18,6 +18,7 @@ Outputs (data/processed/screening/):
     mixtures_ranked.csv   one row per mixture, both scenarios, intervals, ranks
     partners.csv          the partner pool with structure classes and pKa sources
     run_meta.json         settings, counts, timing
+    mc_samples.npz        per-sample capacity and reboiler duty, for the practical stage
 
 Run:  python -m src.screening.run_screen
 """
@@ -32,11 +33,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.thermo.calibrated import load_core_models
+from src.thermo.calibrated import load_core_models, load_partner_models
 from src.thermo.chemistry import CORE_NAMES
 from src.thermo.equilibrium import compile_batch, sample_batch
 
 from .partners import build_model, build_pool
+from .practical import load_availability, purchasable
 from .process import PROCESS, SCENARIOS, evaluate
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -205,7 +207,8 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     core, q_disc = load_core_models()
     partners, pool_log, _ = build_pool({k: v.smiles for k, v in core.items()})
-    pmodels = {p.name: build_model(p) for p in partners}
+    calibrated = load_partner_models()
+    pmodels = {p.name: calibrated.get(p.name) or build_model(p) for p in partners}
     models = {**core, **pmodels}
 
     # 30 wt% MEA is evaluated at the head of every batch as the per-sample benchmark.
@@ -218,23 +221,29 @@ def main():
         batch = batch.take(slice(1, None))
         df, scores = summarise(mixes, res, batch, mea, q_disc)
         print(f"  {tag}: {len(mixes)} mixtures x {K_SAMPLES} samples in {time.time() - t:.0f}s")
-        return df, scores
+        raw = {s: (r["cyclic_mol_per_kg"].astype(np.float32), r["q_reb_gj_per_t"].astype(np.float32))
+               for s, r in res.items()}
+        return df, scores, raw
 
     print("Stage Y (yellow + reference)")
-    df_y, sc_y = run(yellow_and_reference(), "yellow/reference")
+    df_y, sc_y, raw_y = run(yellow_and_reference(), "yellow/reference")
 
     print("Stage B1 (1 core + 1 partner)")
-    df_b1, sc_b1 = run(blue_stage1(list(pmodels)), "blue stage 1")
+    df_b1, sc_b1, raw_b1 = run(blue_stage1(list(pmodels)), "blue stage 1")
 
     df_b1["_mean_score"] = df_b1[[f"{s}_score_median" for s in SCENARIOS]].mean(axis=1)
     best_partner = (df_b1.groupby("partners")["_mean_score"].max()
                     .sort_values(ascending=False))
-    stage2_partners = list(best_partner.index[:N_STAGE2_PARTNERS])
+    # ternaries are only worth building from amines the lab can actually buy
+    avail = load_availability()
+    smiles = {p.name: p.smiles for p in partners}
+    buyable = [n for n in best_partner.index if purchasable(smiles[n], avail)]
+    stage2_partners = buyable[:N_STAGE2_PARTNERS]
     df_b1 = df_b1.drop(columns="_mean_score")
     print("  stage-2 partners:", ", ".join(stage2_partners))
 
     print("Stage B2 (ternary blue)")
-    df_b2, sc_b2 = run(blue_stage2(stage2_partners), "blue stage 2")
+    df_b2, sc_b2, raw_b2 = run(blue_stage2(stage2_partners), "blue stage 2")
 
     # Draws are keyed by amine name (common random numbers across batches), so the
     # per-sample score matrices of all stages can be stacked for top-N probabilities.
@@ -243,6 +252,11 @@ def main():
     keep = ~df.duplicated(subset="composition").to_numpy()
     df = df[keep].reset_index(drop=True)
     all_scores = {s: v[keep] for s, v in all_scores.items()}
+    samples = {}
+    for s in SCENARIOS:
+        samples[f"{s}_cyclic"] = np.vstack([raw_y[s][0], raw_b1[s][0], raw_b2[s][0]])[keep]
+        samples[f"{s}_q_reb"] = np.vstack([raw_y[s][1], raw_b1[s][1], raw_b2[s][1]])[keep]
+    df["_row"] = np.arange(len(df))
     both = 0.5 * (all_scores["cement"] + all_scores["coal"])
     for n in TOP_N:
         df[f"p_top{n}"] = top_n_probability(both, n)
@@ -253,6 +267,8 @@ def main():
     df["robust_score"] = df[[f"{s}_score_lo90" for s in SCENARIOS]].mean(axis=1)
     df["rank_robust"] = df["robust_score"].rank(ascending=False, method="min").astype(int)
     df = df.sort_values("rank_both").reset_index(drop=True)
+    samples = {k: v[df["_row"].to_numpy()] for k, v in samples.items()}
+    df = df.drop(columns="_row")
     df["rank_in_color"] = df.groupby("color")["score_both"].rank(ascending=False, method="first").astype(int)
     df["diverse_rank"] = diverse_ranks(df)
     df["diverse_rank_in_color"] = 0
@@ -266,12 +282,14 @@ def main():
         "pka1": p.pka1, "pka1_sd": p.pka1_sd, "n_sites": len(p.site_classes),
         "site_classes": ",".join(p.site_classes),
         "site_pkas": ",".join(f"{x:.2f}" for x in p.site_pkas),
-        "stage2": p.name in stage2_partners, **p.props} for p in partners])
+        "stage2": p.name in stage2_partners, "calibrated_on_co2_data": p.name in calibrated,
+        **p.props} for p in partners])
     origin = dict(zip(pinfo.name, pinfo.origin))
     df["partner_origin"] = df["partners"].map(
         lambda s: "|".join(origin[x] for x in s.split("|")) if s else "")
 
     df.to_csv(OUT / "mixtures_ranked.csv", index=False)
+    np.savez_compressed(OUT / "mc_samples.npz", mixture_id=df["mixture_id"].to_numpy(dtype="U8"), **samples)
     pinfo.to_csv(OUT / "partners.csv", index=False)
     meta = {
         "total_wt_pct": TOTAL_WT, "yellow_step": YELLOW_STEP, "blue_step": BLUE_STEP,
@@ -282,10 +300,11 @@ def main():
         "runtime_s": round(time.time() - t0, 1),
         "caveats": [
             "MDEA in blends: valued within -11 % (7/2 MDEA/PZ) .. +6 % (5/5) of Xu (2011) empirical fits relative to MEA; no measured 40 C MDEA+PZ capacity data yet; model-form sd on the MDEA concentration term covers the remaining ambiguity",
+            "DETA, DEA and MPA are calibrated on direct CO2 data, but none above 353 K: the stripper at 393 K is an extrapolation",
             "PZ vs MEA checked like-for-like on measured data (Dugas 2009, held out; 40 C, 0.5-5 kPa): 8 m PZ 2.48x vs 2.57x measured, 7/2 MEA/PZ 1.59x vs 1.82x -- PZ and MEA+PZ mixtures are, if anything, slightly UNDER-valued vs MEA (the earlier 'PZ over-valued ~35 %' caveat came from Xu's empirical MEA fit, which over-states 7 m MEA capacity: 0.50 vs 0.30-0.33 measured)",
-            "library partner constants come from OPERA pKa + structure-class priors",
+            "all other partners use literature or OPERA pKa + structure-class priors",
             "equilibrium short-cut process model: for ranking, not plant design",
-            "cost, corrosion, degradation, viscosity, volatility not yet included",
+            "this file ranks capacity + energy only; cost and physical factors are added by src/screening/practical.py",
         ],
     }
     (OUT / "run_meta.json").write_text(json.dumps(meta, indent=2, default=str))

@@ -19,27 +19,27 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
   - **Local copy:** `data/raw/bottger 2009.pdf` — *note: the file name is misleading; the PDF is this 2025 review, not Böttger et al. 2009.*
   - Contains only summary ranges (Tables 1–4) and plots, no raw data tables, so nothing was digitised from it. Used as a **map of ~20 MDEA+PZ VLE sources**; that map led to the Xu (2011) thesis below. Its Table 3 point count for Xu (33) matches our transcription.
 
-- [ ] **HQNN-Amine / SAGE-Amine repos** — structures + reference property sets. github.com/hclim0213/HQNN-Amine, github.com/hclim0213/SAGE-Amine
+- [-] **HQNN-Amine / SAGE-Amine repos** — structures + reference property sets. github.com/hclim0213/HQNN-Amine, github.com/hclim0213/SAGE-Amine
 
 **## Regeneration energy / loop target (ΔH_abs or Cc)**
 
-- [ ] **AMP/PZ thermodynamics incl. heat of absorption + speciation** — Morlando, Hartono & Knuutila 2025, Digital Chemical Engineering. sciencedirect.com/science/article/pii/S2772656825000971
+- [-] **AMP/PZ thermodynamics incl. heat of absorption + speciation** — Morlando, Hartono & Knuutila 2025, Digital Chemical Engineering. sciencedirect.com/science/article/pii/S2772656825000971
 
-- [ ] **Mechanism-based Ca/Cc** — parallel-reaction-mechanism ML, Chem. Eng. Sci. 2025. sciencedirect.com/science/article/abs/pii/S000925092501228X
+- [-] **Mechanism-based Ca/Cc** — parallel-reaction-mechanism ML, Chem. Eng. Sci. 2025. sciencedirect.com/science/article/abs/pii/S000925092501228X
 
 **## σ-profile databases (free, no COSMOtherm needed)**
 
-- [ ] **VT-2005**, 1432 compounds — design.che.vt.edu
+- [-] **VT-2005**, 1432 compounds — design.che.vt.edu
 
-- [ ] **LVPP open σ-profile DB** — github.com/lvpp/sigma
+- [-] **LVPP open σ-profile DB** — github.com/lvpp/sigma
 
-- [ ] **CHAOS large-scale σ-profile DB (2026, JCIM)** — coverage-gap fallback
+- [-] **CHAOS large-scale σ-profile DB (2026, JCIM)** — coverage-gap fallback
 
 **## Structures / general**
 
-- [ ] **PubChem / ChEMBL** — SMILES for candidate screening list
+- [x] **PubChem** — names, CIDs and vendor counts for every partner amine; see *"Availability"* below.
 
-- [ ] **NIST ThermoData Engine** — thermophysical cross-checks
+- [-] **NIST ThermoData Engine** — thermophysical cross-checks
 
 ---
 
@@ -47,6 +47,7 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 - `[ ]` = identified, not yet pulled  
 - `[~]` = identified, but original dataset unavailable; underlying source(s) being reconstructed  
 - `[x]` = pulled into `data/raw/` and has a working ingestion script in `src/data/`
+- `[-]` = not needed for the current deliverable (ML and sigma-profile scope moved to `BACKLOG.md`)
 
 **### PZ — Ermatchkov et al. (2006)**
 
@@ -73,8 +74,8 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 ### Candidate amines — CO2_chemical_solvents (Zenodo, badge 430190456)
 
 - **Status:** `[x]`
-- **Title:** "Design of new chemical solvents for CO2 absorption using a combination of molecular simulations and machine learning"
-- **DOI:** Zenodo badge 430190456 — exact DOI/author list not yet confirmed; verify at zenodo.org before citing in any writeup.
+- **Paper:** Orlov, A. A. et al. "Computational screening methodology identifies effective solvents for CO2 capture." *Commun. Chem.* **2022**, 5, 37. DOI: [10.1038/s42004-022-00654-y](https://doi.org/10.1038/s42004-022-00654-y)
+- **Dataset DOI:** [10.5281/zenodo.6010667](https://doi.org/10.5281/zenodo.6010667), from the paper's data availability statement (GitHub: AxelRolov/CO2_chemical_solvents).
 - **Local copy:** `our data/Amine_Earlier work/CO2_chemical_solvents-main/` (NOT copied into `data/raw/` — repo is ~500MB with 193x duplicated ISIDA-fragment-descriptor files; the ingestion script reads directly from `our data/`, which is gitignored)
 - **Ingestion:** `src/data/ingest_co2_chemical_solvents.py`
 - **Outputs:**
@@ -92,7 +93,7 @@ Log every source here before pulling rows into `data/raw/`. One entry per source
 
 ### Literature blend performance — NotebookLM-extracted tables
 
-- **Status:** `[~]` (extracted by an AI summarization tool from PDFs, not hand-transcribed — needs verification against source PDFs before being trusted as ground truth)
+- **Status:** `[~]` (extracted by an AI summarization tool from PDFs). `src/data/verify_literature_tables.py` checked every number against its PDF text and stored the result in `verified_in_pdf`: 36 found, 6 not found, 67 with no number or no PDF. The six not found include three Wang (2026) capacities (3.111, 2.845, 3.058) and two maximum loadings (1.139, 1.066): do not use them. "Found" means the number is in the paper, not that it is attached to the right blend. The model uses no value from this table; the Wang figures in `calibrate.py` were read directly from the paper. The unlabelled "Source_1" behind the kinetics table was not identified, and kinetics stays out of scope.
 - **Sources (see `References_Amine/` next to the originals):** 2026_Wang (ternary amine blends), 2025_Gupta (novel CO2 capture blend), 2025_Liang (bicarbonate pathways in blends), an AEP/DMEA thermodynamic-modeling paper, and an unlabeled "Source_1" behind the MEA/MDEA/AMP/PZ kinetics table.
 - **Local copies:** three `.xlsx` + one `.docx` under `our data/Amine_Earlier work/Amine Blends_Computations_NotebookLM/`
 - **Ingestion:** `src/data/ingest_literature_blend_performance.py`
@@ -123,9 +124,9 @@ original articles below.
 
 - **Status:** `[x]` — **MDEA heat of absorption, used in the joint MDEA fit** (was held out until 2026-10-15; it is what rejected the heat-capacity variant, see LOG.md)
   - Arcis, H.; Rodier, L.; Ballerat-Busserolles, K.; Coxam, J.-Y. "Enthalpy of solution of CO2 in aqueous solutions of methyldiethanolamine at T = 322.5 K and pressure up to 5 MPa." *J. Chem. Thermodyn.* **2008**, 40, 1022–1029. DOI: [10.1016/j.jct.2008.01.028](https://doi.org/10.1016/j.jct.2008.01.028)
-  - 32 flow-calorimetry points, 15 and 30 mass% MDEA, all at or beyond CO2 saturation (integral enthalpy per mol CO2 fed). Model MAE 1.4 kJ/mol.
+  - 32 flow-calorimetry points, 15 and 30 mass% MDEA, all at or beyond CO2 saturation (integral enthalpy per mol CO2 fed). Model MAE 1.7 kJ/mol.
 
-- **Status:** `[x]` (stored, not yet used) — **MDEA viscosity, for the later physical-factors stage**
+- **Status:** `[x]` — **MDEA viscosity, used in the practical stage** (see *"Viscosity"* below)
   - Bernal-García, J. M.; Galicia-Luna, L. A.; Hall, K. R.; Ramos-Estrada, M.; Iglesias-Silva, G. A. "Viscosities for Aqueous Solutions of N-Methyldiethanolamine from 313.15 to 363.15 K." *J. Chem. Eng. Data* **2004**, 49, 864–866. DOI: [10.1021/je0302250](https://doi.org/10.1021/je0302250)
 
 - **Checked and NOT usable** (recorded so nobody re-tries them):
@@ -169,3 +170,83 @@ original articles below.
 - Böttger et al. 2009 (10.1021/je900083k) and Speyer et al. 2010 (10.1021/je9003383): paywalled; ThermoML holds densities only. Speyer would add 149 low-loading points at 313–393 K if a copy becomes available (e.g. via the BITS library).
 - Further open UT Austin theses with MDEA/PZ data (not yet pulled): Chen 2011 (https://tdl-ir.tdl.org/handle/2152/ETD-UT-2011-08-4312), Nguyen 2013, Li 2015, Du 2016.
 
+### DETA — Chang et al. (2013) (added 2026-11-05)
+
+- **Status:** `[x]` — **used to calibrate DETA**, the first partner amine with direct CO2 data.
+- Chang, Y.-C.; Leron, R. B.; Li, M.-H. "Equilibrium solubility of carbon dioxide in aqueous solutions of (diethylenetriamine + piperazine)." *J. Chem. Thermodyn.* **2013**, 64, 106–113. DOI: [10.1016/j.jct.2013.05.005](https://doi.org/10.1016/j.jct.2013.05.005)
+- **Ingestion:** `src/data/ingest_chang2013_deta.py` → `data/interim/deta_chang2013.csv`, from the NIST ThermoML record. 84 DETA points (20 / 30 / 40 wt%, 313.2 and 353.2 K, pCO2 0.8–937 kPa) and 12 MEA points from the same apparatus, used as a laboratory check.
+- **Labelling note:** ThermoML stores composition as the water : amine mass ratio (4 / 2.333 / 1.5 for DETA; 5.536 for the MEA set).
+- **Missing from the record:** the paper's 333.2 K points and all DETA + PZ blend data. The blend tables are the single most useful thing the BITS library could supply.
+- **Limitation:** no data above 353 K, so DETA at the 393 K stripper is an extrapolation.
+
+### DEA and MPA (added 2026-11-05)
+
+- **Status:** `[x]` — **used to calibrate DEA and MPA**, the partners that lead the practical blue list. **Ingestion:** `src/data/ingest_dea_mpa_thermoml.py` → `data/interim/dea_mpa_vle_thermoml.csv`, `data/interim/dea_enthalpy_arcis2012.csv`.
+- Ghalib, L.; Ali, B. S.; Ashri, W. M.; Mazari, S. "Effect of piperazine on solubility of carbon dioxide using aqueous diethanolamine." *Fluid Phase Equilib.* **2016**, 414, 1–13. DOI: [10.1016/j.fluid.2015.12.056](https://doi.org/10.1016/j.fluid.2015.12.056). 15 points, 2 M DEA, 313–353 K. The record also has 12 points for 1 M PZ, used as a laboratory check. **Labelling notes:** ThermoML calls the loading "mole fraction"; and the PZ loading is per mol alkalinity, shown by the model per mol PZ sitting a steady 1.8x above it. On that basis the laboratory agrees with the PZ model to 0.034 mol/mol. The DEA + PZ blend points are not in the record and would be the best test of the top blue mixtures.
+- Arcis, H.; Ballerat-Busserolles, K.; Rodier, L.; Coxam, J.-Y. "Measurement and Modeling of Enthalpy of Solution of Carbon Dioxide in Aqueous Solutions of Diethanolamine at Temperatures of (322.5 and 372.9) K and Pressures up to 3 MPa." *J. Chem. Eng. Data* **2012**, 57, 840–855. DOI: [10.1021/je201012e](https://doi.org/10.1021/je201012e). Low-loading plateau about 77 kJ/mol at both temperatures, used in the DEA fit.
+- Leontiadis et al. (2019), 3-amino-1-propanol block (same record as the MDEA data above): 60 points, 10 and 15 wt%, 298–333 K.
+- **Limitation:** like DETA, no loading data above 353 K. DIPA and AEP have no direct data in ThermoML, so they stay on structure estimates.
+
+### DETA — checked and NOT usable (2026-11-05)
+
+- Hartono, A. "Characterization of diethylenetriamine (DETA) as absorbent for CO2." PhD thesis, NTNU, **2009** (https://hdl.handle.net/11250/248157): the record could not be read by script, so no PDF was obtained. Holds VLE for 2.5 M DETA and is a strong candidate for stripper-temperature data if a copy can be obtained.
+- Hartono et al. "Solubility of Carbon Dioxide in Aqueous 2.5 M of Diethylenetriamine (DETA) Solution," Energy Procedia (2011): the SINTEF page refused access; not obtained.
+- Tzirakis et al. (2021), high-pressure CO2 solubility in aqueous DETA and TETA: the repository PDF link returned an HTML page, not the paper.
+
+### Wang et al. (2026), DETA ternary blends (read 2026-11-05)
+
+- Wang, L.; He, L.; Liu, X.; Wang, R. "High-cyclic-capacity ternary amine blends containing TMPDA and DETA for CO2 capture: kinetics, stability, and corrosion analysis." *Sep. Purif. Technol.* **2026**, 393, 137264. Local copy in `our data/`.
+- Used as a coarse check only (`wang_check` in `calibrate.py`): measured absorption capacity 2.67–3.36 mol/kg at 323 K and 13 vol% CO2, against 1.9–2.4 from the model. Its capacities are also above what Chang's pure-DETA data imply, so the two laboratories disagree. Chang is the anchor because its MEA points match three other laboratories (MAE 0.019).
+- Also the source of the low end of the DETA corrosion range (blends 0.0317–0.0406 mm/a, 30 wt% MEA 0.0416 mm/a, static immersion).
+
+### Viscosity at 40 °C — NIST ThermoML (added 2026-11-05)
+
+- **Status:** `[x]` — used by `src/data/ingest_viscosity_thermoml.py` → `data/interim/viscosity_thermoml.csv`, `data/processed/practical/viscosity_fit.json` (53 points, RMS 0.09 in ln viscosity).
+- Amundsen, T. G.; Øi, L. E.; Eimer, D. A. *J. Chem. Eng. Data* **2009**. DOI: [10.1021/je900188m](https://doi.org/10.1021/je900188m) (MEA, loaded).
+- Freeman, S. A.; Rochelle, G. T. *J. Chem. Eng. Data* **2011**. DOI: [10.1021/je1012263](https://doi.org/10.1021/je1012263) (PZ, loaded). **Labelling note:** ThermoML calls these concentrations "Molality", but they are mol per kg of solution: the abstract gives (1.5 to 7.0) mol/kg as (2 to 20) molal.
+- Paul, S.; Mandal, B. *J. Chem. Eng. Data* **2006**. DOI: [10.1021/je060195b](https://doi.org/10.1021/je060195b) (MDEA, MDEA + PZ, AMP + PZ).
+- Hartono, A.; Svendsen, H. F. *J. Chem. Thermodyn.* **2009**, 41, 973–979. DOI: [10.1016/j.jct.2008.11.012](https://doi.org/10.1016/j.jct.2008.11.012) (DETA, unloaded).
+- Checked, not usable: Henni et al. 2003 (10.1021/je0201851) is not in ThermoML. Fu et al. 2014 (10.1016/j.jct.2013.08.025, carbonated AMP + PZ) is in ThermoML but its loading is not stored with the viscosity block.
+
+### Amine prices (added 2026-11-05)
+
+Stored as low / median / high in `data/processed/practical/amine_inputs.csv`. Market indices are secondary and often inconsistent with each other, so the ranges are deliberately wide. Reliability: the LLNL report was read directly; the rest come from search-result excerpts of market pages and should be replaced by real supplier quotes.
+
+- Jones, D. A. "Technoeconomic Evaluation of MEA versus Mixed Amines and a Catalyst System for CO2 Removal at Near-Commercial Scale at Duke Energy Gibson 3 Plant and Duke Energy Buck NGCC Plant." LLNL-TR-758732, **2018** (https://www.osti.gov/servlets/purl/1476188). MEA $2,880/t, MDEA $2,980/t, AMP $4,960/t. Also lost generation of 27.1 MWh at 115 MWth reboiler duty and $51.2/MWh, which gives the $3.4/GJ heat price for the coal scenario.
+- MEA: Expert Market Research (USD 1.30–1.37/kg, 2025), https://www.expertmarketresearch.com/price-forecast/monoethanolamine-price-trends; Intratec (USD 943/t, Europe, November 2025), https://www.intratec.us/chemical-markets/monoethanolamine-price.
+- DETA: ChemAnalyst (about USD 3,033/t FOB Osaka, Q3 2025), https://www.chemanalyst.com/Pricing-data/diethylenetriamine-deta-1176; Price-Watch (USD 2,700–3,400/t, 2025), https://www.price-watch.ai/diethylenetriamine-prices/; Expert Market Research (USD 1.80–1.92/kg), https://www.expertmarketresearch.com/price-forecast/diethylenetriamine-price-trends.
+- PZ: Expert Market Research (USD 2.75–3.08/kg, 2025–26), https://www.expertmarketresearch.com/price-forecast/piperazine-price-trends; ChemicalBook supplier listing ($5–5.50/kg at 20–25 kg, undated), https://www.chemicalbook.com/Price/Piperazine.htm.
+- MDEA: Guidechem (10,600–14,250 CNY/t, 2026), https://www.guidechem.com/price/en/105-59-9.html.
+- DEA: IMARC (USD 1.0–1.3/kg, late 2025), https://www.imarcgroup.com/diethanolamine-pricing-report.
+- AMP: no dated bulk quote found. A Guidechem range equal to about $0.50–0.90/kg was rejected as implausible (undated, far below the LLNL value).
+- **Assumptions, no source:** EAE, DIPA, MPA, AEP, HEPZ, HMPD and all library amines ($10–100/kg). Marked `assumption` in the input file.
+
+### Solvent loss and oxidation (added 2026-11-05)
+
+- Obute, J.; Onomura, T.; Rochelle, G. "Amine screening for oxidation by bench-scale experiments." PCCC-8, **2025** (IEAGHG slides, https://airdrive.eventsair.com/eventsairwesteuprod/production-ieaghg-public/cbe16b9807b74faea861b57fe6ac3d47). ODBR with 1 mM Fe3+, relative to MEA = 100: CESAR1 11, PZ 17, MPA 18, AMP 47, AEP 51, HEP 62, DETA 68. Without iron, kDO in h⁻¹: MEA 2.04, DETA 1.13, PZ 0.18, AMP 0.18. The authors class DETA and MEA both as "bad"; DETA is not worse than MEA on oxygen use, though its NH3 rate is higher (119 vs 100).
+- Moser, P. et al. *Int. J. Greenh. Gas Control* **2021**, 109, 103381 (ALIGN-CCUS, Niederaussem). CESAR1 solvent consumption 0.45 kg/t CO2 averaged over 400 days; minimum reboiler duty 2,970 MJ/t. https://researchportal.hw.ac.uk/en/publications/align-ccus-results-of-the-18-month-test-with-aqueous-amppz-solven/
+- Buvik et al. (2021) and Liu et al. (2024), as tabulated by Obute (2025).
+- Wang, T.; Jens, K.-J. AMP oxidation close to MDEA and below MEA at 120 °C. https://openarchive.usn.no/usn-xmlui/handle/11250/2437799
+- MEA make-up of 1.5 kg/t: a commonly quoted value. Only a secondary source was found (a supplier blog citing a 2019 National Petroleum Council roadmap, https://alliancechemical.com/blogs/news/carbonbridge-co2-export-terminal-mea-amine-capture-economics), so the input range is 0.8–3 kg/t.
+
+### Corrosion (added 2026-11-05)
+
+- Chen, X.; Cui, Y.; Wang, S. "Corrosion Behavior of Carbon Steel in Diethylenetriamine Solution for Post-combustion CO2 Capture." *ACS Omega* **2024**, 9, 13067–13080. DOI: [10.1021/acsomega.3c09540](https://doi.org/10.1021/acsomega.3c09540). Tafel, 24 h, 60 °C: 30% DETA 1.146–2.764 mm/a (loading 1.2–0.2), 30% MEA 0.225 mm/a (loading 0.4).
+- Wang et al. (2026): DETA ternaries slightly below MEA (above). The two studies conflict, so DETA's index is carried as 0.9–11, median 3.
+- Rankings of single amines, used as indices rather than rates: MEA > AMP > DEA > PZ > MDEA with MEA and AMP about double PZ and MDEA, and MEA > DEA > PZ > AMP ≈ MDEA. University of Regina thesis (https://instrepo-prod7.cc.uregina.ca/items/d988e562-9d77-4f39-a756-97c30c41ddaf) and Campbell et al. 2016 (https://spiral.imperial.ac.uk/handle/10044/1/32300). Read as search excerpts only.
+
+### Volatility and PZ solubility (added 2026-11-05)
+
+- Nguyen, T.; Hilliard, M.; Rochelle, G. T. "Amine volatility in CO2 capture." *Int. J. Greenh. Gas Control* **2010**, 4, 707–715, via IEAGHG information paper 2017-IP38 (https://publications.ieaghg.org/insightpapers/2017-IP38%20Volatility%20of%20amines%20for%20CO2%20capture.pdf). Gives the order only: PZ and MDEA + PZ non-volatile, then EDA, MEA, AMP. Numeric vapour pressures were not obtained, so the core volatility indices are estimates; partners use OPERA vapour pressure or boiling point.
+- US patent 9,321,007, "Blends of amines with piperazine for CO2 capture" (https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/9321007): 8 m PZ needs at least 0.25 mol CO2 / mol alkalinity at 22 °C and precipitates again at 0.44. Used as a conservative warning threshold, since 30 wt% is about 5 m.
+
+### Energy benchmarks and heat price (added 2026-11-05)
+
+- Verhaeghe, A. et al., PCCC-8, 2025 (https://airdrive.eventsair.com/eventsairwesteuprod/production-ieaghg-public/874fd8f67f0d4351911b7e00a573f7e9): minimum duty 3.70 (CESAR1) vs 3.92 MJ/kg (MEA) at equal stripper pressure; whether this is pilot or model output is unclear from the excerpt.
+- Mertdag, Y., master's thesis, Aalborg University (https://projekter.aau.dk/projekter/files/535657815/Yasemin_Mertdag_master_thesis.pdf): 2.8 vs 3.5 GJ/t in ProMax.
+- *Frontiers in Energy Research* 2024, DOI [10.3389/fenrg.2024.1325212](https://doi.org/10.3389/fenrg.2024.1325212): 2.86 vs 3.61 GJ/t.
+- CEMCAP: waste heat at 7 €/MWh (about €1.9/GJ) and MEA duty of 3.7–4.08 MJ/kg CO2 (https://www.sintef.no/en/projects/2015/cemcap/results/d4.2, search excerpt; the PDF refused script access). The gas-boiler steam price was not found, so the $10/GJ top of the cement range is an assumption.
+
+### Availability (added 2026-11-05)
+
+- PubChem PUG REST and PUG View: `src/data/ingest_pubchem_partners.py` → `data/processed/practical/partner_availability.csv`. Vendor count from the "Chemical Vendors" source category. Being listed means a compound can be bought in research quantities, not that it is sold by the tonne.

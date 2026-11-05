@@ -1,0 +1,94 @@
+{
+  "energy": {
+    "model": {
+      "cement": {
+        "q_mea_gj_per_t": 2.3527291250683655,
+        "q_cesar1_gj_per_t": 2.133296114641236,
+        "ratio_cesar1_to_mea": 0.9067325651350735
+      },
+      "coal": {
+        "q_mea_gj_per_t": 2.4330076263709715,
+        "q_cesar1_gj_per_t": 2.1977711680129794,
+        "ratio_cesar1_to_mea": 0.9033145413075148
+      }
+    },
+    "measured_ratio": {
+      "Verhaeghe et al. 2025 (PCCC-8), equal stripper pressure": 0.944,
+      "Mertdag thesis, ProMax simulation": 0.8,
+      "Frontiers in Energy Research 2024, biomass CHP": 0.792
+    }
+  },
+  "sensitivity": {
+    "top_n": 20,
+    "kept_in_top_n": {
+      "q_mea_pilot=low": {
+        "yellow": 20,
+        "blue": 20
+      },
+      "q_mea_pilot=high": {
+        "yellow": 20,
+        "blue": 19
+      },
+      "heat_cement=low": {
+        "yellow": 19,
+        "blue": 17
+      },
+      "heat_cement=high": {
+        "yellow": 19,
+        "blue": 17
+      },
+      "heat_coal=low": {
+        "yellow": 20,
+        "blue": 20
+      },
+      "heat_coal=high": {
+        "yellow": 20,
+        "blue": 19
+      },
+      "makeup_floor=low": {
+        "yellow": 20,
+        "blue": 19
+      },
+      "makeup_floor=high": {
+        "yellow": 18,
+        "blue": 19
+      },
+      "makeup_ox_mea=low": {
+        "yellow": 20,
+        "blue": 19
+      },
+      "makeup_ox_mea=high": {
+        "yellow": 20,
+        "blue": 19
+      },
+      "vapour_mea_coal=low": {
+        "yellow": 19,
+        "blue": 20
+      },
+      "vapour_mea_coal=high": {
+        "yellow": 20,
+        "blue": 20
+      },
+      "corrosion_mea=low": {
+        "yellow": 19,
+        "blue": 18
+      },
+      "corrosion_mea=high": {
+        "yellow": 17,
+        "blue": 16
+      },
+      "viscosity_base=low": {
+        "yellow": 19,
+        "blue": 19
+      },
+      "viscosity_base=high": {
+        "yellow": 18,
+        "blue": 18
+      }
+    },
+    "worst_case": {
+      "yellow": 17,
+      "blue": 16
+    }
+  }
+}

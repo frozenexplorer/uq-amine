@@ -53,43 +53,44 @@
     "opera_pka_sd": 0.5
   },
   "stage2_partners": [
-    "DETA",
     "L0255",
     "L0075",
     "L0163",
-    "L0191",
-    "L0097",
     "L0142",
     "L0342",
     "L0407",
     "L0029",
-    "L0098",
     "L0274",
     "L0190",
     "L0348",
     "L0335",
     "L0171",
     "L0080",
-    "L0138",
     "L0118",
     "L0074",
     "L0211",
     "L0068",
     "L0354",
     "L0379",
-    "L0020"
+    "L0368",
+    "L0032",
+    "L0367",
+    "L0149",
+    "L0180",
+    "L0078"
   ],
   "counts": {
     "blue": 22620,
     "yellow": 451,
     "reference": 4
   },
-  "runtime_s": 296.0,
+  "runtime_s": 284.4,
   "caveats": [
     "MDEA in blends: valued within -11 % (7/2 MDEA/PZ) .. +6 % (5/5) of Xu (2011) empirical fits relative to MEA; no measured 40 C MDEA+PZ capacity data yet; model-form sd on the MDEA concentration term covers the remaining ambiguity",
+    "DETA, DEA and MPA are calibrated on direct CO2 data, but none above 353 K: the stripper at 393 K is an extrapolation",
     "PZ vs MEA checked like-for-like on measured data (Dugas 2009, held out; 40 C, 0.5-5 kPa): 8 m PZ 2.48x vs 2.57x measured, 7/2 MEA/PZ 1.59x vs 1.82x -- PZ and MEA+PZ mixtures are, if anything, slightly UNDER-valued vs MEA (the earlier 'PZ over-valued ~35 %' caveat came from Xu's empirical MEA fit, which over-states 7 m MEA capacity: 0.50 vs 0.30-0.33 measured)",
-    "library partner constants come from OPERA pKa + structure-class priors",
+    "all other partners use literature or OPERA pKa + structure-class priors",
     "equilibrium short-cut process model: for ranking, not plant design",
-    "cost, corrosion, degradation, viscosity, volatility not yet included"
+    "this file ranks capacity + energy only; cost and physical factors are added by src/screening/practical.py"
   ]
 }

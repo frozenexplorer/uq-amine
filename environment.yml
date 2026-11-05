@@ -4,22 +4,18 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - rdkit
-  - lightgbm
-  - scikit-learn
-  - pandas
-  - numpy
-  - matplotlib
-  - seaborn
-  - optuna
-  - python-dotenv
+  - rdkit=2026.3.6
+  - pandas=2.3.3
+  - numpy=2.4.6
+  - scipy=1.17.1
+  - matplotlib=3.11.2
+  - python-dotenv=1.2.4
+  # Only needed to re-read the personal research dump (src/data/ingest_literature_blend_performance.py)
+  - openpyxl
+  - python-docx
   - pip
   - pip:
-      - ngboost
-      - mapie
-      - chemprop
-      - neo4j
-      # Quantum extras (PennyLane, qiskit) — add only when Phase 6 (quantum ablation) starts.
+      - neo4j==6.4.1
 variables:
   # MKL's default OpenMP layer is missing on Windows and crashes LAPACK; TBB works.
   MKL_THREADING_LAYER: TBB

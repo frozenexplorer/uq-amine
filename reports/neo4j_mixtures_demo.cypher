@@ -5,7 +5,28 @@
 // Rebuild after a new screening run:  python -m src.data.load_neo4j_mixtures
 
 // ---------------------------------------------------------------
-// 1. The headline picture: top 25 yellow + top 25 blue, with their amines
+// 0. The lab lists: top 25 yellow + top 25 blue by running cost, with their amines
+// ---------------------------------------------------------------
+MATCH (m:LabList)
+WHERE m.color IN ['yellow', 'blue'] AND m.rank_practical_in_color <= 25
+MATCH p = (a:Amine)-[:IN_MIXTURE]->(m)
+RETURN p;
+
+// Table version of the combined lab list
+MATCH (m:LabList) WHERE m.rank_practical <= 100
+RETURN m.rank_practical AS rank, m.color AS colour, m.composition AS mixture,
+       round(m.cost_usd_per_t, 1) AS cost_per_t, round(m.saving_vs_mea, 1) AS saving_vs_MEA,
+       round(m.p_cheaper_than_mea, 2) AS P_cheaper, round(m.corrosion_index, 1) AS corrosion,
+       m.warnings AS warnings
+ORDER BY rank;
+
+// Mixtures that score well on chemistry but fail the practical filter
+MATCH (m:Mixture) WHERE m.rank_both <= 100 AND NOT m.practical_ok
+RETURN m.rank_both AS capacity_energy_rank, m.composition AS mixture, m.excluded_because AS why
+ORDER BY capacity_energy_rank;
+
+// ---------------------------------------------------------------
+// 1. Capacity + energy only: top 25 yellow + top 25 blue, with their amines
 // ---------------------------------------------------------------
 MATCH (m:Mixture)
 WHERE m.color IN ['yellow', 'blue'] AND m.rank_in_color <= 25

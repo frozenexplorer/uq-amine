@@ -1,0 +1,19 @@
+amine,price_low,price_med,price_high,price_basis,oxidation_low,oxidation_med,oxidation_high,oxidation_basis,corrosion_low,corrosion_med,corrosion_high,corrosion_basis,visc_a
+MEA,0.95,1.5,2.9,"market: 0.94 Intratec EU Nov 2025; 1.30-1.37 EMR 2025; 2.88 LLNL 2018",1,1,1,reference,1,1,1,reference,
+MDEA,1.5,2.5,3.0,"market: 10600-14250 CNY/t Guidechem 2026; 2.98 LLNL 2018",0.2,0.47,1.0,"estimate: oxidises like AMP (Wang & Jens); no Obute value",0.3,0.4,0.7,"literature ranking: about half of MEA",
+AMP,3.0,5.0,8.0,"market: 4.96 LLNL 2018 (no dated bulk quote found)",0.3,0.47,0.7,"measured: Obute 2025 ODBR 47 (Buvik 6; Liu 8)",0.4,0.7,1.1,"literature ranking: studies disagree, near half to near MEA",
+PZ,2.75,4.0,7.0,"market: 2.75-3.08 EMR 2025; 5-5.5 for 25 kg lots",0.05,0.17,0.3,"measured: Obute 2025 ODBR 17 (Buvik 2)",0.1,0.5,1.0,"literature ranking: about half of MEA; one study 100x lower",
+DETA,1.8,2.7,3.4,"market: 1.8-1.9 EMR 2025; 2.7-3.4 export benchmarks 2025",0.5,0.68,1.0,"measured: Obute 2025 ODBR 68 (NH3 k50 119)",0.9,3.0,11.0,"measured but conflicting: Chen 2024 5-12x MEA; Wang 2026 ternaries 0.8-1.0x",
+DEA,1.0,1.15,1.5,"market: 1.0-1.3 IMARC late 2025",0.5,0.7,1.0,estimate: secondary alkanolamine,0.5,0.7,1.0,"literature ranking: between MEA and PZ",
+EAE,3.0,6.0,12.0,assumption: specialty alkanolamine,0.5,0.8,1.2,estimate: secondary alkanolamine,0.5,0.8,1.2,estimate: secondary alkanolamine,
+DIPA,2.0,3.0,5.0,assumption: commodity alkanolamine,0.4,0.6,1.0,estimate: hindered secondary alkanolamine,0.4,0.6,1.0,estimate: secondary alkanolamine,
+MPA,5.0,8.0,20.0,assumption: specialty alkanolamine,0.1,0.18,0.3,"measured: Obute 2025 ODBR 18 (Buvik 17)",0.6,1.0,1.5,estimate: primary alkanolamine,
+AEP,2.5,3.5,6.0,assumption: ethyleneamine family,0.3,0.51,0.8,"measured: Obute 2025 ODBR 51 (Buvik 0)",0.8,1.5,4.0,"literature ranking: AEPZ corrosive in stripper study",
+HEPZ,4.0,8.0,15.0,assumption: specialty piperazine,0.4,0.62,0.9,measured: Obute 2025 ODBR 62,0.4,0.7,1.2,estimate: Wang 2026 HEPZ ternary near MEA,
+HMPD,10.0,20.0,50.0,assumption: fine chemical,0.15,0.3,0.7,estimate: hindered ring tertiary (Buvik structure trend),0.3,0.4,0.7,estimate: tertiary amine,
+class:library,10.0,30.0,100.0,assumption: catalogue amine at multi-tonne scale,,,,,,,,,
+class:primary,,,,,0.5,0.8,1.2,estimate: primary amine class,0.6,1.0,1.5,estimate: primary amine class,3.3
+class:secondary,,,,,0.4,0.7,1.1,estimate: secondary amine class,0.5,0.7,1.1,estimate: secondary amine class,3.8
+class:secondary_ring,,,,,0.1,0.3,0.7,estimate: PZ-like ring,0.3,0.5,1.0,estimate: PZ-like ring,5.1
+class:tertiary,,,,,0.15,0.4,1.0,estimate: tertiary amine class,0.3,0.4,0.7,estimate: tertiary amine class,3.8
+class:polyamine,,,,,0.3,0.6,1.0,estimate: DETA and AEP,0.8,2.0,6.0,estimate: DETA and AEP,4.6

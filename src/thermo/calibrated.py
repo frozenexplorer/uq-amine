@@ -22,3 +22,16 @@ def load_core_models() -> tuple:
                                   [Species(**s) for s in d["species"]],
                                   source=d["source"], note=d["note"])
     return models, float(payload["loading_discrepancy_q90"])
+
+
+def load_partner_models() -> dict:
+    """Partner amines calibrated on CO2 data (polyamines keep one model per basic site)."""
+    if not PARAMS_JSON.exists():
+        return {}
+    out = {}
+    for name, d in json.loads(PARAMS_JSON.read_text()).get("partners", {}).items():
+        sites = [AmineModel(f"{name}#{k}", d["smiles"], d["mw"], [Species(**s) for s in sp])
+                 for k, sp in enumerate(d["sites"])]
+        out[name] = AmineModel(name, d["smiles"], d["mw"], sites[0].species, sites=len(sites),
+                               source=d["source"], note=d["note"], site_models=sites)
+    return out

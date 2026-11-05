@@ -1,45 +1,53 @@
 # amine-co2-uq
 
-Uncertainty-aware ML for identifying amine solvents across the CO₂ absorption–regeneration loop.
+Uncertainty-aware screening of amine mixtures for CO₂ capture: which blends are worth testing
+in the lab, for cement and coal flue gas.
 
-**Anchor paper:** HQNN-Amine (Cho, Kim, No & Lim, 2025) — [github.com/hclim0213/HQNN-Amine](https://github.com/hclim0213/HQNN-Amine)
+**Starting point:** HQNN-Amine (Cho, Kim, No & Lim, 2025) — [github.com/hclim0213/HQNN-Amine](https://github.com/hclim0213/HQNN-Amine)
 
 ## What this is
 
-HQNN-Amine predicts five proxy physicochemical properties with a classical + quantum regressor.
-This project predicts the actual loop quantities — **CO₂ solubility/loading** and **regeneration
-energy (heat of absorption / cyclic capacity)** — with **calibrated uncertainty** (conformal
-intervals, aleatoric/epistemic decomposition), and uses that uncertainty to drive **active-learning-guided
-candidate screening**. Kinetics and degradation are scoped out this semester (see `BACKLOG.md`).
+A calibrated equilibrium model predicts cyclic capacity and regeneration energy for about 23,000
+mixtures at 30 wt% total amine, with Monte Carlo and conformal uncertainty. A practical stage then
+adds amine price and physical factors, all as running cost in $ per tonne CO₂.
+
+- **Yellow** = mixtures of MEA / MDEA / PZ / AMP only.
+- **Blue** = at least one of those + another amine.
 
 ## Status
 
-**Current deliverable:** a ranked, uncertainty-aware list of amine **mixtures** to test in the lab.
-Yellow = mixtures of MEA / MDEA / PZ / AMP only; blue = at least one of those + another amine.
-Ranked on cyclic capacity + regeneration energy (cost and corrosion/physical factors come next).
-See `LOG.md` for session-by-session progress.
+**Deliverable:** three lab lists in `reports/results/`, ordered by saving against 30 wt% MEA:
+`lab_list_combined` (top 100), `lab_list_yellow` (top 50), `lab_list_blue` (top 50).
+See `LOG.md` for session-by-session progress and `BACKLOG.md` for what is parked.
 
 ```
-VLE data ──► src/thermo/calibrate.py ──► calibrated equilibrium model (+ conformal margin)
-                                                │
-partner amines (src/screening/partners.py) ─────┤
-                                                ▼
-              src/screening/run_screen.py  (≈23k mixtures × 48 MC samples × 2 scenarios)
-                                                │
-             ┌──────────────────────────────────┼───────────────────────────────┐
-  reports/figures/screening/      reports/results/shortlist_top100.*     Neo4j (yellow/blue graph)
+VLE, heat and viscosity data ──► src/thermo/calibrate.py ──► calibrated model (+ conformal margin)
+                                                                       │
+partner amines (src/screening/partners.py) ────────────────────────────┤
+                                                                       ▼
+                     src/screening/run_screen.py   (≈23k mixtures × 48 MC samples × 2 scenarios)
+                                                                       │
+prices, degradation, corrosion, viscosity, vendors ────────────────────┤
+                                                                       ▼
+                     src/screening/practical.py    ($ / t CO₂, practical filter, ranks)
+                                                                       │
+                ┌──────────────────────────────────────────────────────┼────────────────┐
+     reports/figures/                                    reports/results/lab_list_*     Neo4j
 ```
 
 ## Repo layout
 
 ```
-data/{raw,interim,processed}/   # never edit raw; scripts only
-src/{data,features,models,uq,eval,viz}/
-notebooks/                      # exploration only; logic lives in src/
-models/                         # saved checkpoints
-reports/{results,figures}/      # results/*.md + publication figures
-run_all.py                      # fresh clone -> key figures
-environment.yml                 # locked env
+data/{raw,interim,processed}/   # raw is gitignored; interim tables are tracked, so NIST can be down
+data/processed/practical/       # amine_inputs.csv: every price and index with its basis
+src/data/                       # ingestion, verification, Neo4j loaders
+src/thermo/                     # equilibrium model and calibration
+src/screening/                  # partner pool, process model, screen, practical stage
+src/viz/                        # figures and lab lists
+tests/                          # sanity checks (python -m tests.test_practical)
+reports/{results,figures}/      # lists, tables and figures
+run_all.py                      # fresh clone -> lists and figures
+environment.yml                 # pinned environment
 data_sources.md                 # provenance ledger
 ```
 
@@ -53,6 +61,21 @@ python run_all.py
 
 ## Results
 
+Lab lists (both scenarios, 30 wt% MEA = $20.8/t on this basis):
+
+| List | Best mixture | Saving vs MEA, $/t [90 %] | P(cheaper than MEA) |
+|---|---|---|---|
+| Blue | PZ 25% + DEA 5% | +1.96 [-0.58, +5.40] | 0.92 |
+| Yellow | MEA 2.5% + PZ 27.5% | +1.85 [-0.85, +5.37] | 0.92 |
+| Reference | PZ 30% | +1.88 [-1.13, +5.76] | 0.90 |
+
+- The leaders are PZ-rich and their differences are smaller than the uncertainty: read the top of each list as a group, not an exact order. The best yellow mixtures are effectively PZ alone.
+- 207 of the 20,475 mixtures that pass the practical filter are cheaper than MEA. Moving any assumption to the end of its range keeps at least 16 of each colour's top 20.
+- On capacity + energy alone, AMP 25% + 1-methyl-3-pyrrolidinol 5% leads, but at an assumed $30/kg for the partner it is not a cheap option. No mixture beats MEA at its 90 % lower bound in both scenarios.
+- **DETA fell.** Direct data (Chang 2013) cut 30 wt% DETA's capacity from 2.9 to 1.55 mol/kg. The former #1, PZ 5% + DETA 25%, is now #4694 and slightly worse than MEA. See `reports/results/ranking_change_deta_dea_mpa.md`.
+
+Model validation:
+
 | Target | Model | Split | MAE | Coverage (90% PI) |
 |---|---|---|---|---|
 | CO₂ loading, MEA | calibrated equilibrium | fit (Wagner 2013 + Aronu 2011, 236 pts) | 0.014 mol/mol | – |
@@ -60,23 +83,29 @@ python run_all.py
 | CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 mol/mol | – |
 | CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 mol/mol | – |
 | CO₂ loading, MDEA | calibrated equilibrium | joint fit (Leontiadis 2019 + Dey 2018 + Xu 2011 MDEA+PZ, 112 pts; + Arcis 2008 heats) | 0.031 mol/mol; heats 1.7 kJ/mol | – |
+| CO₂ loading, DETA | calibrated equilibrium | fit (Chang 2013, 84 pts); leave-one-concentration-out 0.02–0.06 | 0.029 mol/mol (old estimate: 0.44 vs 0.70 measured at 80 °C, 2 kPa) | – |
+| CO₂ loading, DEA | calibrated equilibrium | fit (Ghalib 2016, 15 pts; + Arcis 2012 heats) | 0.015 mol/mol (estimate was 0.126) | – |
+| CO₂ loading, MPA | calibrated equilibrium | fit (Leontiadis 2019, 60 pts) | 0.016 mol/mol (estimate was 0.047) | – |
 | CO₂ loading, MDEA+PZ blends, 100–160 °C | calibrated equilibrium | **leave-one-blend-out** (Xu 2011) | 0.037 / 0.014 mol/mol alkalinity | 1.00 with conformal margin |
 | CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 mol/mol | 0.30 parameter-only → **0.92** with conformal margin |
 | Capacity vs 7 m MEA (40 °C, 0.5→5 kPa), measured | calibrated equilibrium | like-for-like benchmark (Dugas 2009, held out) | 7 m MEA 0.338 vs 0.328 mol/kg; 8 m PZ 2.48× vs 2.57×; 7/2 MEA/PZ 1.59× vs 1.82× | – |
 | Capacity vs 7 m MEA, MDEA/PZ | calibrated equilibrium | benchmark (Xu 2011 Table 2-12, empirical fits) | 7/2 MDEA/PZ 1.50× vs 1.68×; 5/5 2.08× vs 1.96× | – |
+| Reboiler duty, CESAR1 : MEA | short-cut process model | benchmark (three studies) | 0.90–0.91 vs 0.79–0.94 reported | – |
 
-Screening (both scenarios, score vs 30 wt% MEA): best blue = PZ 5% + DETA 25%; best yellow = MEA 2.5% + PZ 27.5%
-(overall #52; 6 yellow in the top 100). No mixture yet beats MEA at its conservative 90% lower bound.
-Effect of the 2026-10-15 MEA recalibration: `reports/results/ranking_change_mea_recalibration.md`.
-Known biases (absorber end, vs measured data): PZ and MEA+PZ are, if anything, slightly *under*-valued relative
-to MEA (−4 % and −13 %); MDEA-rich blends are slightly under-valued. Xu's (2011) MEA capacity of 0.50 mol/kg,
-which earlier suggested the opposite, comes from an empirical fit; measured 7 m MEA data give 0.30–0.33.
+Known limits:
+
+- Absolute reboiler duty reads about 40 % low, so the practical stage scales it to a 30 wt% MEA duty of 3.7 GJ/t and keeps the ratios between solvents.
+- DETA, DEA and MPA have no loading data above 353 K, so the 393 K stripper is an extrapolation.
+- Wang (2026) measures DETA ternary capacities about 30 % above the model; those values also sit above Chang's pure-DETA data, so the laboratories disagree.
+- DIPA, AEP and the library amines still use structure-based estimates. Those estimates were wrong for DETA, DEA and MPA, so treat them as provisional (the lists mark them `partner estimated`).
+- Many prices, and the corrosion and viscosity cost scales, are assumptions: see `data/processed/practical/amine_inputs.csv` and `SCALARS` in `src/screening/practical.py`.
+- PZ and MEA+PZ are, if anything, slightly under-valued against MEA at the absorber end (−4 % and −13 %).
 
 ## Neo4j
 
 ```bash
 python -m src.data.load_neo4j_graph       # experimental + candidate-amine graph
-python -m src.data.load_neo4j_mixtures    # screened mixtures (Yellow / Blue / Reference labels)
+python -m src.data.load_neo4j_mixtures    # screened mixtures (Yellow / Blue / Reference, LabList)
 ```
 Drag `reports/neo4j_mixtures.grass` onto Neo4j Browser for the yellow/blue colours, then run the
 blocks in `reports/neo4j_mixtures_demo.cypher`.

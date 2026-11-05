@@ -33,6 +33,8 @@ Run:  python -m src.data.ingest_thermoml_mea_mdea
 from __future__ import annotations
 
 import json
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -51,6 +53,7 @@ MAX_PCO2_FROM_TOTAL = 2000.0
 
 
 THERMOML_URL = "https://trc.nist.gov/ThermoML/{doi}.json"
+FETCH_RETRIES = 4
 
 
 def _raw_path(doi: str) -> Path:
@@ -65,8 +68,15 @@ def fetch(doi: str) -> Path:
         # NIST rejects urllib's default User-Agent (HTTP 403)
         req = urllib.request.Request(THERMOML_URL.format(doi=doi),
                                      headers={"User-Agent": "amine-co2-uq/0.1 (research data ingestion)"})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            payload = r.read()
+        for attempt in range(FETCH_RETRIES):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    payload = r.read()
+                break
+            except (urllib.error.URLError, TimeoutError):   # NIST often answers 504
+                if attempt == FETCH_RETRIES - 1:
+                    raise
+                time.sleep(5.0 * (attempt + 1))
         json.loads(payload)  # fail loudly on an HTML error page
         path.write_bytes(payload)
         print("downloaded", doi)

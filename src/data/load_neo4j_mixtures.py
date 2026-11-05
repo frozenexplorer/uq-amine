@@ -7,6 +7,8 @@ Graph model (added on top of the existing VLE / candidate graph):
     (:Mixture:Blue)        >= 1 core amine + >= 1 partner amine
     (:Mixture:Reference)   single core amine at 30 wt% (benchmarks)
     (:Mixture:Shortlist)   extra label on the current top-N (default 100) by rank_both
+    (:Mixture:LabList)     extra label on the lab lists: top-100 combined, top-50 yellow
+                           and top-50 blue by running cost (rank_practical)
 
     (:Amine {smiles})-[:IN_MIXTURE {wt_pct}]->(:Mixture)
         Amine nodes are MERGEd on canonical SMILES, so they are the same nodes the VLE
@@ -14,7 +16,7 @@ Graph model (added on top of the existing VLE / candidate graph):
     (:Mixture)-[:SCORED_IN {rank, score, cyclic, q_reb, ...}]->(:Scenario {name})
 
 Every run deletes all :Mixture nodes first, so the graph always matches the latest
-data/processed/screening/mixtures_ranked.csv.
+data/processed/screening/mixtures_practical.csv.
 
 Colours: drag reports/neo4j_mixtures.grass onto the Neo4j Browser window
 (yellow = core-only mixtures, blue = mixtures with other amines).
@@ -58,6 +60,10 @@ def clean(v):
     return v
 
 
+def as_rank(v):
+    return None if pd.isna(v) or v == "" else int(float(v))
+
+
 def short_label(row, names):
     parts = []
     for n in CORE_NAMES:
@@ -90,6 +96,16 @@ def build_rows(df, pinfo):
             "diverse_rank": int(r["diverse_rank"]),
             "diverse_rank_in_color": int(r["diverse_rank_in_color"]),
             "partner_origin": r.get("partner_origin") or None,
+            "practical_ok": str(r["practical_ok"]) == "True",
+            "excluded_because": r["excluded_because"] or None,
+            "warnings": r["warnings"] or None,
+            "rank_practical": as_rank(r["rank_practical"]),
+            "rank_practical_in_color": as_rank(r["rank_practical_in_color"]),
+            "cost_usd_per_t": clean(r["cost_both"]), "saving_vs_mea": clean(r["saving_vs_mea"]),
+            "p_cheaper_than_mea": clean(r["p_cheaper_than_mea"]),
+            "corrosion_index": clean(r["corrosion_index"]),
+            "oxidation_index": clean(r["oxidation_index"]),
+            "rich_viscosity_mpas": clean(r["mu_rich_mpas"]),
         }
         for k in r:
             if k.startswith("p_top"):
@@ -142,12 +158,14 @@ def main():
                     help="load only the best N blue mixtures (all yellow are loaded)")
     args = ap.parse_args()
 
-    df = pd.read_csv(SCREEN / "mixtures_ranked.csv", keep_default_na=False,
-                     na_values=["", "nan"])
-    df["partners"] = df["partners"].fillna("").astype(str)
-    df["partner_wt"] = df["partner_wt"].fillna("").astype(str)
+    df = pd.read_csv(SCREEN / "mixtures_practical.csv", keep_default_na=False,
+                     na_values=["", "nan"], low_memory=False)
+    for col in ("partners", "partner_wt", "excluded_because", "warnings"):
+        df[col] = df[col].fillna("").astype(str)
     pinfo = pd.read_csv(SCREEN / "partners.csv")
-    blue = df[df.color == "blue"].nsmallest(args.max_blue, "rank_both")
+    # keep the blue mixtures that are best on either ranking, so every lab-list entry is loaded
+    practical = pd.to_numeric(df["rank_practical"], errors="coerce")
+    blue = df[(df.color == "blue") & ((df["rank_both"] <= args.max_blue) | (practical <= args.max_blue))]
     df = pd.concat([df[df.color != "blue"], blue]).sort_values("rank_both")
     rows = build_rows(df, pinfo)
 
@@ -170,24 +188,33 @@ def main():
         run_batches(s, Q_COMPONENTS, rows)
         run_batches(s, Q_SCORED, rows)
         s.run("MATCH (m:Mixture) WHERE m.rank_both <= $n SET m:Shortlist", n=args.shortlist).consume()
+        s.run("MATCH (m:Mixture) WHERE m.rank_practical <= 100 OR "
+              "(m.color IN ['yellow', 'blue'] AND m.rank_practical_in_color <= 50) "
+              "SET m:LabList").consume()
 
         # roles + readable names on amine nodes
         core = [{"smiles": canon(m.smiles), "code": n} for n, m in core_amines().items()]
         s.run("UNWIND $rows AS r MATCH (a:Amine {smiles: r.smiles}) "
               "SET a.role = 'core', a.name = r.code, a:Core", rows=core).consume()
+        names = pd.read_csv(SCREEN / "amines_practical.csv").set_index("name")["chem_name"].to_dict()
         prow = [{"smiles": canon(r.smiles), "code": r.name, "origin": r.origin,
-                 "pka1": float(r.pka1), "sites": r.site_classes} for r in pinfo.itertuples()]
+                 "pka1": float(r.pka1), "sites": r.site_classes,
+                 "chem_name": names[r.name] if isinstance(names.get(r.name), str) else None}
+                for r in pinfo.itertuples()]
         run_batches(s, "UNWIND $rows AS r MATCH (a:Amine {smiles: r.smiles}) "
                        "WHERE (a)-[:IN_MIXTURE]->() "
                        "SET a.role = 'partner', a.partner_code = r.code, "
                        "a.name = coalesce(a.name, r.code), a.partner_origin = r.origin, "
-                       "a.pka1_model = r.pka1, a.site_classes = r.sites, a:Partner", prow)
+                       "a.pka1_model = r.pka1, a.site_classes = r.sites, a.chem_name = r.chem_name, "
+                       "a:Partner", prow)
 
         counts = s.run("MATCH (m:Mixture) RETURN m.color AS c, count(*) AS n ORDER BY c").data()
         short = s.run("MATCH (m:Shortlist) RETURN m.color AS c, count(*) AS n ORDER BY c").data()
+        lab = s.run("MATCH (m:LabList) RETURN m.color AS c, count(*) AS n ORDER BY c").data()
     driver.close()
     print("mixtures loaded:", {r["c"]: r["n"] for r in counts})
     print(f"shortlist (top {args.shortlist}):", {r["c"]: r["n"] for r in short})
+    print("lab lists:", {r["c"]: r["n"] for r in lab})
 
 
 if __name__ == "__main__":

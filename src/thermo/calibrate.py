@@ -45,9 +45,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from rdkit.Chem import Descriptors
 from scipy.optimize import least_squares
 
-from .chemistry import CORE_NAMES, MW_WATER, AmineModel, core_amines, water_vapor_pressure_kpa
+from src.screening.partners import CURATED, Partner, analyse, build_model, protonation_order
+
+from .chemistry import (CORE_NAMES, MW_WATER, AmineModel, Species, core_amines,
+                        water_vapor_pressure_kpa)
 from .equilibrium import (compile_batch, heat_of_absorption, pco2_at_loading, sample_batch,
                           solve)
 
@@ -515,6 +519,163 @@ def dugas_validation(models: dict, q_hat: float) -> tuple:
 # ---------------------------------------------------------------------------
 # Figures
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# DETA (Chang et al. 2013): the one partner amine with direct pCO2-loading data
+# ---------------------------------------------------------------------------
+DETA_SMILES, DETA_MW = "NCCNCCN", 103.17
+# Sites: two terminal primary N (pKa 9.84 / 9.02) and the central secondary N (pKa 4.23).
+# The two primaries share their enthalpies and carbamate constants. pKa1 stays fixed.
+DETA_PARAMS = ("prot_dH_primary", "prot_dH_secondary", "pKa3", "carb_logK_primary",
+               "carb_dH_primary", "carb_logK_secondary", "carb_dH_secondary", "pKa2")
+DETA_PRIOR = np.array([-51.0, -45.0, 4.23, 1.4, -22.0, 0.6, -18.0, 9.02])
+DETA_PRIOR_SD = np.array([8.0, 8.0, 0.6, 1.0, 12.0, 1.0, 12.0, 0.3])
+DETA_PKA1 = 9.84
+# Wang et al. (2026): measured absorption capacity at 323 K, 13 vol% CO2, mol CO2/kg absorbent.
+# TMPDA and HEPZ are uncalibrated, so this is a coarse check, never a fit.
+WANG_2026 = {"3-5": ({"DETA": 20, "HEPZ": 5, "AMP": 5}, 3.358),
+             "4-5": ({"DETA": 20, "TMPDA": 5, "AMP": 5}, 3.358),
+             "1-1": ({"TMPDA": 10, "PZ": 10, "DETA": 10}, 2.964),
+             "2-2": ({"TMPDA": 15, "AMP": 5, "DETA": 10}, 2.667)}
+
+
+def deta_model(theta, sd=None) -> AmineModel:
+    t = dict(zip(DETA_PARAMS, theta))
+    u = dict(zip(DETA_PARAMS, sd if sd is not None else np.zeros(len(theta))))
+    sites = []
+    for k, (cls, pka, sd_pka) in enumerate((("primary", DETA_PKA1, 0.15),
+                                            ("primary", t["pKa2"], u["pKa2"]),
+                                            ("secondary", t["pKa3"], u["pKa3"]))):
+        sites.append(AmineModel(f"DETA#{k}", DETA_SMILES, DETA_MW, [
+            Species(f"DETA#{k}", 0, 0, 0.0, 0.0),
+            Species(f"DETA#{k}H+", 1, 0, pka, t[f"prot_dH_{cls}"], sd_pka, u[f"prot_dH_{cls}"]),
+            Species(f"DETA#{k}COO-", 0, 1, t[f"carb_logK_{cls}"], t[f"carb_dH_{cls}"],
+                    u[f"carb_logK_{cls}"], u[f"carb_dH_{cls}"])]))
+    return AmineModel("DETA", DETA_SMILES, DETA_MW, sites[0].species, sites=3, source="calibrated",
+                      note="MAP fit to Chang et al. (2013), 84 pCO2-loading points", site_models=sites)
+
+
+def predict_deta(df: pd.DataFrame, model: AmineModel) -> np.ndarray:
+    b = compile_batch([[(model, m)] for m in df["m_amine"]])
+    return solve(b, df["T"].to_numpy(), df["pCO2_kPa"].to_numpy())["loading"]
+
+
+def fit_deta(df: pd.DataFrame) -> tuple:
+    obs = df["loading"].to_numpy()
+    sig = SIGMA_ABS + SIGMA_REL * obs
+
+    def resid(theta):
+        return np.r_[(predict_deta(df, deta_model(theta)) - obs) / sig,
+                     (theta - DETA_PRIOR) / DETA_PRIOR_SD]
+
+    res = least_squares(resid, DETA_PRIOR, method="trf", x_scale=DETA_PRIOR_SD, diff_step=1e-4)
+    n = len(obs)
+    chi2_red = float(np.sum(res.fun[:n] ** 2) / max(n - len(res.x), 1))
+    cov = np.linalg.pinv(res.jac.T @ res.jac) * max(chi2_red, 1.0)
+    sd = np.sqrt(np.clip(np.diag(cov), 0, None))
+    return res.x, sd, chi2_red
+
+
+def deta_report(df: pd.DataFrame, theta, sd, chi2_red, models: dict) -> dict:
+    fitted = deta_model(theta, sd)
+    pred = predict_deta(df, fitted)
+    obs = df["loading"].to_numpy()
+    logo = {}
+    for w, g in df.groupby(df["w_amine"].round(2)):
+        th, _, _ = fit_deta(df[df["w_amine"].round(2) != w])
+        p = predict_deta(g, deta_model(th))
+        logo[f"{w:.0%}"] = {"mae": float(np.mean(np.abs(p - g["loading"]))),
+                            "bias": float(np.mean(p - g["loading"]))}
+    # the same laboratory's MEA points against the MEA model fitted on other laboratories
+    m = pd.read_csv(ROOT / "data" / "interim" / "deta_chang2013.csv").query("amine == 'MEA'")
+    m = m[m["pCO2_kPa"] <= MAX_PCO2]
+    b = compile_batch([[(models["MEA"], x)] for x in m["m_amine"]])
+    mea = solve(b, m["T"].to_numpy(), m["pCO2_kPa"].to_numpy())["loading"]
+    return {"n_points": len(df), "chi2_reduced": chi2_red,
+            "mae_loading": float(np.mean(np.abs(pred - obs))),
+            "bias_loading": float(np.mean(pred - obs)),
+            "params": {k: {"prior": float(p), "fit": float(t), "sd": float(s)}
+                       for k, p, t, s in zip(DETA_PARAMS, DETA_PRIOR, theta, sd)},
+            "leave_one_concentration_out": logo,
+            "same_lab_mea_check": {"n": len(m), "mae": float(np.mean(np.abs(mea - m["loading"]))),
+                                   "bias": float(np.mean(mea - m["loading"]))}}
+
+
+def wang_check(models: dict) -> list:
+    """Absorption capacity of DETA ternary blends (Wang 2026) vs the model at 323 K, 13 kPa."""
+    pool = {n: (s, p) for n, s, p, _ in CURATED}
+    extra = {}
+    for n in ("TMPDA", "HEPZ"):
+        smi, pka = pool[n]
+        mol, idx, classes, dm = analyse(smi)
+        idx, classes, pkas = protonation_order(idx, classes, pka, dm)
+        extra[n] = build_model(Partner(n, smi, Descriptors.MolWt(mol), pka, 0.3, "curated",
+                                       classes, pkas, {}))
+    allm = {**models, **extra}
+    out = []
+    for name, (comp, measured) in WANG_2026.items():
+        water = 100.0 - sum(comp.values())
+        mix = [(allm[a], w / allm[a].mw * 1000.0 / water) for a, w in comp.items()]
+        b = compile_batch([mix])
+        n_co2 = solve(b, np.array([323.15]), np.array([13.0]))["n_co2"][0]
+        out.append({"blend": name, "composition": comp, "measured_mol_per_kg": measured,
+                    "model_mol_per_kg": float(n_co2 / b.solvent_kg_per_kg_water[0])})
+    return out
+
+
+# ---------------------------------------------------------------------------
+# DEA and MPA: single-site partners with direct data. Apparent pKa, protonation heat and
+# carbamate constants are all free, as for the core amines, starting from the class priors.
+# ---------------------------------------------------------------------------
+SINGLE_SITE = {"DEA": ("OCCNCCO", 105.14, 8.88, -45.0, 0.6, -18.0),
+               "MPA": ("NCCCO", 75.11, 9.96, -51.0, 1.4, -22.0)}
+SINGLE_PRIOR_SD = np.array([0.5, 8.0, 1.0, 12.0])
+DEA_HEAT_POINTS = ((322.5, 5.0), (372.9, 20.0))   # low-loading plateau of Arcis (2012)
+HEAT_SIGMA = 3.0                                  # kJ/mol
+
+
+def single_site_model(name, theta, sd=None) -> AmineModel:
+    smiles, mw = SINGLE_SITE[name][:2]
+    pka, dh, lk, cdh = theta
+    u = sd if sd is not None else np.zeros(4)
+    site = AmineModel(f"{name}#0", smiles, mw, [
+        Species(f"{name}#0", 0, 0, 0.0, 0.0),
+        Species(f"{name}#0H+", 1, 0, pka, dh, u[0], u[1]),
+        Species(f"{name}#0COO-", 0, 1, lk, cdh, u[2], u[3])])
+    return AmineModel(name, smiles, mw, site.species, sites=1, source="calibrated", site_models=[site])
+
+
+def fit_single_site(name: str, df: pd.DataFrame, heat: float | None = None) -> tuple:
+    obs = df["loading"].to_numpy()
+    sig = SIGMA_ABS + SIGMA_REL * obs
+    prior = np.array(SINGLE_SITE[name][2:])
+    m30 = 0.30 / SINGLE_SITE[name][1] * 1000.0 / 0.70
+
+    def resid(theta):
+        model = single_site_model(name, theta)
+        parts = [(predict_deta(df, model) - obs) / sig]
+        if heat is not None:
+            b = compile_batch([[(model, m30)]])
+            parts.append(np.array([(float(heat_of_absorption(b, np.array([T]), np.array([p]))[0]) - heat)
+                                   / HEAT_SIGMA for T, p in DEA_HEAT_POINTS]))
+        return np.concatenate(parts + [(theta - prior) / SINGLE_PRIOR_SD])
+
+    res = least_squares(resid, prior, method="trf", x_scale=SINGLE_PRIOR_SD, diff_step=1e-4)
+    n = len(obs)
+    chi2_red = float(np.sum(res.fun[:n] ** 2) / max(n - len(prior), 1))
+    cov = np.linalg.pinv(res.jac.T @ res.jac) * max(chi2_red, 1.0)
+    sd = np.sqrt(np.clip(np.diag(cov), 0, None))
+    model = single_site_model(name, res.x, sd)
+    pred = predict_deta(df, model)
+    prior_pred = predict_deta(df, single_site_model(name, prior))
+    model.note = f"MAP fit to {n} pCO2-loading points"
+    return model, {"n_points": n, "chi2_reduced": chi2_red,
+                   "mae_prior": float(np.mean(np.abs(prior_pred - obs))),
+                   "mae_loading": float(np.mean(np.abs(pred - obs))),
+                   "bias_loading": float(np.mean(pred - obs)),
+                   "params": dict(zip(("pKa", "prot_dH", "carb_logK", "carb_dH"), res.x.tolist())),
+                   "sd": sd.tolist()}
+
+
 def parity_plot(ax, df, pred, title, lo=None, hi=None):
     obs = df["loading"].to_numpy()
     labels = df["label"].to_numpy()
@@ -671,8 +832,48 @@ def main():
         print(f"    {r.solvent:18s} Xu {r.xu_2011:5.1f} | model {r.model_40C:5.1f} / "
               f"{r.model_80C:5.1f} / {r.model_120C:5.1f}")
 
+    # DETA: the only partner amine with direct CO2 data
+    deta_df = pd.read_csv(ROOT / "data" / "interim" / "deta_chang2013.csv").query("amine == 'DETA'")
+    deta_theta, deta_sd, deta_chi2 = fit_deta(deta_df)
+    report["DETA"] = deta_report(deta_df, deta_theta, deta_sd, deta_chi2, models)
+    deta = deta_model(deta_theta, deta_sd)
+    rd = report["DETA"]
+    print(f"DETA (Chang 2013): n={rd['n_points']}  MAE={rd['mae_loading']:.3f}  "
+          f"chi2_red={rd['chi2_reduced']:.2f}")
+    for k, v in rd["params"].items():
+        print(f"    {k:22s} prior {v['prior']:8.2f} -> fit {v['fit']:8.3f} +/- {v['sd']:.3f}")
+    print(f"    leave-one-concentration-out: {rd['leave_one_concentration_out']}")
+    print(f"    same-lab MEA check: {rd['same_lab_mea_check']}")
+    report["DETA_blends_Wang2026"] = wang_check({**models, "DETA": deta})
+    print("DETA ternary blends (Wang 2026, 323 K, 13 kPa, absorption capacity mol/kg):")
+    for r in report["DETA_blends_Wang2026"]:
+        print(f"    {r['blend']}  measured {r['measured_mol_per_kg']:.2f} | "
+              f"model {r['model_mol_per_kg']:.2f}")
+
+    # DEA and MPA: the partners that lead the practical list, checked against direct data
+    pv = pd.read_csv(ROOT / "data" / "interim" / "dea_mpa_vle_thermoml.csv")
+    arcis = pd.read_csv(ROOT / "data" / "interim" / "dea_enthalpy_arcis2012.csv")
+    dea_heat = float(arcis.groupby("T")["dH_solution_kj_per_mol"].apply(lambda s: s.head(5).mean()).mean())
+    calibrated_partners = {"DETA": deta}
+    for name, heat in (("DEA", dea_heat), ("MPA", None)):
+        fitted, st = fit_single_site(name, pv[pv["amine"] == name], heat)
+        calibrated_partners[name] = fitted
+        report[name] = st
+        print(f"{name}: n={st['n_points']}  MAE prior {st['mae_prior']:.3f} -> fit {st['mae_loading']:.3f}  "
+              f"chi2_red={st['chi2_reduced']:.2f}  {st['params']}")
+    g = pv[pv["amine"] == "PZ"]
+    b_pz = compile_batch([[(models["PZ"], m)] for m in g["m_amine"]])
+    # Ghalib reports PZ loading per mol alkalinity: the model per mol PZ runs a steady 1.8x above it
+    pz_pred = solve(b_pz, g["T"].to_numpy(), g["pCO2_kPa"].to_numpy())["loading"] / 2.0
+    report["Ghalib2016_same_lab_PZ_check"] = {"n": len(g), "mae": float(np.mean(np.abs(pz_pred - g["loading"]))),
+                                              "bias": float(np.mean(pz_pred - g["loading"]))}
+    print(f"same-lab PZ check (Ghalib 2016): {report['Ghalib2016_same_lab_PZ_check']}")
+
     # save parameters
-    payload = {"loading_discrepancy_q90": q_hat, "fit_report": report, "amines": {}}
+    payload = {"loading_discrepancy_q90": q_hat, "fit_report": report, "amines": {}, "partners": {
+        n: {"smiles": m.smiles, "mw": m.mw, "source": m.source, "note": m.note,
+            "sites": [[vars(s) for s in site.species] for site in m.site_models]}
+        for n, m in calibrated_partners.items()}}
     for name, mdl in models.items():
         payload["amines"][name] = {
             "smiles": mdl.smiles, "mw": mdl.mw, "source": mdl.source, "note": mdl.note,

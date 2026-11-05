@@ -1,0 +1,20 @@
+{
+  "a": {
+    "MEA": 3.278,
+    "MDEA": 3.834,
+    "AMP": 3.813,
+    "PZ": 5.113,
+    "DETA": 4.581
+  },
+  "b": 0.475,
+  "mu_water_40C_mpas": 0.655,
+  "n_points": 53,
+  "rms_ln_mu": 0.09435943002974383,
+  "points_by_source": {
+    "Freeman 2011": 23,
+    "Amundsen 2009": 13,
+    "Paul 2006": 11,
+    "Hartono 2009": 4,
+    "Bernal-Garcia 2004": 2
+  }
+}

@@ -23,7 +23,7 @@ AMINES = {
 
 
 def featurize(smiles: str) -> dict:
-    """Minimal descriptor set — expand in src/features/ once building for real."""
+    """Minimal descriptor set, enough to prove RDKit works."""
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         raise ValueError(f"RDKit failed to parse/sanitize SMILES: {smiles}")

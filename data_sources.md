@@ -124,7 +124,7 @@ original articles below.
 
 - **Status:** `[x]` — **MDEA heat of absorption, used in the joint MDEA fit** (was held out until 2026-10-15; it is what rejected the heat-capacity variant, see LOG.md)
   - Arcis, H.; Rodier, L.; Ballerat-Busserolles, K.; Coxam, J.-Y. "Enthalpy of solution of CO2 in aqueous solutions of methyldiethanolamine at T = 322.5 K and pressure up to 5 MPa." *J. Chem. Thermodyn.* **2008**, 40, 1022–1029. DOI: [10.1016/j.jct.2008.01.028](https://doi.org/10.1016/j.jct.2008.01.028)
-  - 32 flow-calorimetry points, 15 and 30 mass% MDEA, all at or beyond CO2 saturation (integral enthalpy per mol CO2 fed). Model MAE 1.7 kJ/mol.
+  - 32 flow-calorimetry points, 15 and 30 mass% MDEA, all at or beyond CO2 saturation (integral enthalpy per mol CO2 fed). Model MAE 1.8 kJ/mol.
 
 - **Status:** `[x]` — **MDEA viscosity, used in the practical stage** (see *"Viscosity"* below)
   - Bernal-García, J. M.; Galicia-Luna, L. A.; Hall, K. R.; Ramos-Estrada, M.; Iglesias-Silva, G. A. "Viscosities for Aqueous Solutions of N-Methyldiethanolamine from 313.15 to 363.15 K." *J. Chem. Eng. Data* **2004**, 49, 864–866. DOI: [10.1021/je0302250](https://doi.org/10.1021/je0302250)
@@ -137,11 +137,25 @@ original articles below.
 
 ### MDEA + PZ blend VLE at stripper temperatures — Xu (2011) PhD thesis (added 2026-10-15)
 
-- **Status:** `[x]` — **used in the joint MDEA calibration** (first used held out: it exposed a +0.073 mol/mol-alkalinity bias at 100–160 °C). Generalisation checked leave-one-blend-out (MAE 0.037 / 0.014). Table 2-12 capacity and heat values are used as benchmarks in `calibrate.py`.
+- **Status:** `[x]` — **used in the joint MDEA calibration** (first used held out: it exposed a +0.073 mol/mol-alkalinity bias at 100–160 °C). Generalisation checked leave-one-blend-out (MAE 0.035 / 0.014). Table 2-12 capacity and heat values are used as benchmarks in `calibrate.py`.
 - Xu, Q. "Thermodynamics of CO2 Loaded Aqueous Amines." PhD Dissertation, The University of Texas at Austin, **2011** (supervisor G. T. Rochelle). Open copy hosted by the Rochelle group: https://sites.utexas.edu/rochelle/wp-content/uploads/sites/3310/2015/02/Xu-2011-Thermodynamics-of-CO2-Loaded-Aqueous-Amines.pdf
 - **Local copy:** `data/raw/xu_2011_thesis/` (gitignored). **Ingestion:** `src/data/ingest_xu2011_mdea_pz.py` holds a verbatim transcription of Tables 2-8 and 2-9 (each of the 33 rows checked programmatically against the PDF text) → `data/interim/mdea_pz_xu2011.csv`.
 - Table 2-8: 7 m MDEA / 2 m PZ, 20 points; Table 2-9: 5 m MDEA / 5 m PZ, 13 points; 100–160 °C, pCO2 78–2477 kPa (calibration-style cap at 2000 kPa applies). In the thesis "Amine m" is total alkalinity and loading is per mol alkalinity; the script converts to MDEA / PZ molalities using the 7:2 and 5:5 mole ratios.
 - Table 2-12 of the same thesis (heat of absorption and cyclic capacity for 7 m MEA, 8 m PZ, 7/2 and 5/5 MDEA/PZ; from Xu's empirical fits to measured VLE) → `XU_CAPACITY` / `XU_HEAT` benchmarks in `src/thermo/calibrate.py`.
+
+### AMP and AMP + PZ: Hartono (2020) and Dash (2011) (in use since 2026-08-25; entry added 2026-11-06)
+
+Both PDFs were identified from their embedded publisher metadata and DOI; the author lists were checked against Crossref.
+
+- **Hartono (2020). Status:** `[x]` — **used in the AMP calibration.**
+  - Hartono, A.; Ahmad, R.; Usman, M.; Asif, N.; Svendsen, H. F. "Solubility of CO2 in 0.1M, 1M and 3M of 2-amino-2-methyl-1-propanol (AMP) from 313 to 393K and model representation using the eNRTL framework." *Fluid Phase Equilib.* **2020**, 511, 112485. DOI: [10.1016/j.fluid.2020.112485](https://doi.org/10.1016/j.fluid.2020.112485)
+  - **Local copy:** `data/raw/hartono_2020_amp_co2_h2o.pdf` (gitignored). **Ingestion:** `src/data/integrate_hartono_dash.py` and `src/data/build_modeling_dataset.py` → `data/processed/hartono_2020_amp_co2_h2o_normalized.csv`.
+  - Used: Tables 4–6, 110 points with a CO2 partial pressure, 0.1 / 1 / 3 M AMP (0.9 / 9 / 26.8 wt%), 40–80 °C, pCO2 0.016–18.7 kPa.
+  - Not used: Tables 7–9, 50 points at 80–120 °C, which give total pressure only (214–1002 kPa).
+- **Dash (2011). Status:** `[x]` — **held out: never fitted. It tests the blend prediction and sets the conformal margin.**
+  - Dash, S. K.; Samanta, A. N.; Bandyopadhyay, S. S. "Solubility of carbon dioxide in aqueous solution of 2-amino-2-methyl-1-propanol and piperazine." *Fluid Phase Equilib.* **2011**, 307, 166–174. DOI: [10.1016/j.fluid.2011.05.009](https://doi.org/10.1016/j.fluid.2011.05.009)
+  - **Local copy:** `data/raw/dash_2011_amp_pz_co2_h2o.pdf` (gitignored). **Ingestion:** same scripts → `data/processed/dash_2011_amp_pz_co2_h2o_table7_normalized.csv`.
+  - Used: Table 7, 158 points, 22/8, 25/5 and 28/2 wt% AMP/PZ, 25–55 °C, pCO2 0.10–1487 kPa.
 
 ### MEA low-pressure VLE — Aronu et al. (2011) (added 2026-10-15)
 
@@ -244,7 +258,7 @@ Stored as low / median / high in `data/processed/practical/amine_inputs.csv`. Ma
 
 - Verhaeghe, A. et al., PCCC-8, 2025 (https://airdrive.eventsair.com/eventsairwesteuprod/production-ieaghg-public/874fd8f67f0d4351911b7e00a573f7e9): minimum duty 3.70 (CESAR1) vs 3.92 MJ/kg (MEA) at equal stripper pressure; whether this is pilot or model output is unclear from the excerpt.
 - Mertdag, Y., master's thesis, Aalborg University (https://projekter.aau.dk/projekter/files/535657815/Yasemin_Mertdag_master_thesis.pdf): 2.8 vs 3.5 GJ/t in ProMax.
-- *Frontiers in Energy Research* 2024, DOI [10.3389/fenrg.2024.1325212](https://doi.org/10.3389/fenrg.2024.1325212): 2.86 vs 3.61 GJ/t.
+- Salman, M.; Beguin, B.; Nyssen, T.; Léonard, G. "Techno-economic analysis of AMP/PZ solvent for CO2 capture in a biomass CHP plant: towards net negative emissions." *Front. Energy Res.* **2024**, 12, 1325212. DOI: [10.3389/fenrg.2024.1325212](https://doi.org/10.3389/fenrg.2024.1325212): 2.86 vs 3.61 GJ/t.
 - CEMCAP: waste heat at 7 €/MWh (about €1.9/GJ) and MEA duty of 3.7–4.08 MJ/kg CO2 (https://www.sintef.no/en/projects/2015/cemcap/results/d4.2, search excerpt; the PDF refused script access). The gas-boiler steam price was not found, so the $10/GJ top of the cement range is an assumption.
 
 ### Availability (added 2026-11-05)

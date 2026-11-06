@@ -79,3 +79,7 @@ our data/
 *.bak
 # Reports for the supervisor: kept local, never pushed
 reports/*.docx
+
+# Personal project reference: local only, never pushed
+/PROJECT_REFERENCE.docx
+~$*

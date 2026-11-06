@@ -84,12 +84,12 @@ Model validation:
 | CO₂ loading, MEA / PZ / MEA+PZ, 40–100 °C | calibrated equilibrium | **held out** (Dugas 2009, 50 / 43 / 12 pts) | 0.012 / 0.011 / 0.009 mol/mol alkalinity | MEA parameter-only 0.62 → 0.92 after inter-lab sd inflation (×2.25) |
 | CO₂ loading, AMP | calibrated equilibrium | fit (Hartono 2020, 110 pts) | 0.028 mol/mol | – |
 | CO₂ loading, PZ | calibrated equilibrium | fit (Ermatchkov 2006, 52 pts) | 0.008 mol/mol | – |
-| CO₂ loading, MDEA | calibrated equilibrium | joint fit (Leontiadis 2019 + Dey 2018 + Xu 2011 MDEA+PZ, 112 pts; + Arcis 2008 heats) | 0.031 mol/mol; heats 1.7 kJ/mol | – |
+| CO₂ loading, MDEA | calibrated equilibrium | joint fit (Leontiadis 2019 + Dey 2018 + Xu 2011 MDEA+PZ, 112 pts; + Arcis 2008 heats) | 0.031 mol/mol; heats 1.8 kJ/mol | – |
 | CO₂ loading, DETA | calibrated equilibrium | fit (Chang 2013, 84 pts); leave-one-concentration-out 0.02–0.06 | 0.029 mol/mol (old estimate: 0.44 vs 0.70 measured at 80 °C, 2 kPa) | – |
 | CO₂ loading, DEA | calibrated equilibrium | fit (Ghalib 2016, 15 pts; + Arcis 2012 heats) | 0.015 mol/mol (estimate was 0.126) | – |
 | CO₂ loading, MPA | calibrated equilibrium | fit (Leontiadis 2019, 60 pts) | 0.016 mol/mol (estimate was 0.047) | – |
 | CO₂ loading, MEA / PZ / MEA+PZ, 40–60 °C | calibrated equilibrium | **held out** (Hilliard 2008, 55 / 62 / 41 pts) | 0.020 / 0.012 / 0.011 mol/mol N (MEA+PZ bias −0.001) | – |
-| CO₂ loading, MDEA+PZ blends, 100–160 °C | calibrated equilibrium | **leave-one-blend-out** (Xu 2011) | 0.037 / 0.014 mol/mol alkalinity | 1.00 with conformal margin |
+| CO₂ loading, MDEA+PZ blends, 100–160 °C | calibrated equilibrium | **leave-one-blend-out** (Xu 2011) | 0.035 / 0.014 mol/mol alkalinity | 1.00 with conformal margin |
 | CO₂ loading, AMP+PZ blend | calibrated equilibrium | **held out** (Dash 2011, 158 pts) | 0.052 mol/mol | 0.30 parameter-only → **0.92** with conformal margin |
 | Capacity vs 7 m MEA (40 °C, 0.5→5 kPa), measured | calibrated equilibrium | like-for-like benchmark (Dugas 2009, held out) | 7 m MEA 0.338 vs 0.328 mol/kg; 8 m PZ 2.48× vs 2.57×; 7/2 MEA/PZ 1.59× vs 1.82× | – |
 | Capacity vs 7 m MEA, MDEA/PZ | calibrated equilibrium | benchmark (Xu 2011 Table 2-12, empirical fits) | 7/2 MDEA/PZ 1.50× vs 1.68×; 5/5 2.08× vs 1.96× | – |

@@ -57,5 +57,6 @@ Format per session: date / shipped / blocked / next action.
   - Measured PZ volatility replaced the estimate (0.45 of MEA, not 0.1) and measured MEA volatility set the vapour loss. The patent-based PZ flag was replaced by the measured liquidus: unloaded 30 wt% PZ solidifies below about 42 °C.
   - Final numbers: MEA $20.7/t; PZ 25% + DEA 5% saves $1.92/t; MEA 2.5% + PZ 27.5% saves $1.80/t; PZ alone $1.85/t; 216 of 20,475 cheaper than MEA.
 - 2026-11-06: documentation clean-up, no results changed. Added the missing ledger entries for Hartono 2020 and Dash 2011. README and ledger now match the final fit report (MDEA heats 1.8 kJ/mol, leave-one-blend-out 0.035 / 0.014). The local supervisor report no longer calls one energy ratio a pilot-type comparison: none of the three is a confirmed pilot measurement.
+- 2026-11-06: clean-copy check of 7f49b79 passed. Two fresh clones, one as cloned and one with the local PDFs added, ran all of `run_all.py` and the 6 tests. In both, the lab lists, shortlist, checks, calibration and mixture table were byte-identical to the working repo; only the runtime field in `run_meta.json` differed.
 - Next action: lab plan with the supervisor, measuring PZ against MEA reboiler duty first; replace market-index prices with real quotes.
 

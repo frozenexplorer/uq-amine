@@ -3,7 +3,7 @@ Ingest the "CO2_chemical_solvents" Zenodo dataset (Zenodo badge 430190456;
 local copy under `our data/Amine_Earlier work/CO2_chemical_solvents-main/`).
 
 That repo studies CO2 reaction rate (kinetics, out of this project's scope
-per BACKLOG.md) and CO2 binding free energy dG_MD (relevant to regeneration
+per docs/BACKLOG.md) and CO2 binding free energy dG_MD (relevant to regeneration
 energy) for amines, via MD simulation + ML (OPERA descriptors + RF/XGB
 ensembles trained on many ISIDA fragment-descriptor variants).
 

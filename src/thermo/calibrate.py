@@ -126,7 +126,7 @@ def load_data() -> dict:
     # Fills the lean/absorber region Wagner barely covers (Wagner starts at 1.4 kPa at 40 C).
     # Adding it with the same 4 free constants was chosen over adding a concentration term
     # (b_conc): the term fit Aronu better in-sample but failed leave-one-concentration-out at
-    # 60 mass% (MAE 0.025 vs 0.017) and did not improve the held-out Dugas checks. LOG.md.
+    # 60 mass% (MAE 0.025 vs 0.017) and did not improve the held-out Dugas checks. docs/LOG.md.
     a = pd.read_csv(ROOT / "data" / "interim" / "mea_aronu2011.csv")
     aronu = pd.DataFrame({"T": a["T"].astype(float), "p": a["pCO2_kPa"].astype(float),
                           "m_MEA": a["m_amine"].astype(float), "loading": a["loading"].astype(float),
@@ -161,7 +161,7 @@ FREE = {
     # (100-160 C, ~50 wt% amine) and Arcis (2008) calorimetry. A concentration term on the
     # apparent protonation constant (Kent-Eisenberg extension) reconciles all three; a
     # heat-capacity term also fits but needs an unphysical dCp (~ -0.6 kJ/mol/K, protonation
-    # heat -25 -> -90 kJ/mol over 25-130 C), so it was rejected. See LOG.md 2026-10-15.
+    # heat -25 -> -90 kJ/mol over 25-130 C), so it was rejected. See docs/LOG.md 2026-10-15.
     "MDEA": [("MDEAH+", "logK25"), ("MDEAH+", "dH"), ("MDEAH+", "b_conc")],
     "AMP": [("AMPH+", "logK25"), ("AMPH+", "dH"), ("AMPCOO-", "logK25"), ("AMPCOO-", "dH")],
     "PZ": [("PZH+", "logK25"), ("PZH+", "dH"), ("PZCOO-", "logK25"), ("PZCOO-", "dH"),

@@ -5,7 +5,7 @@ New ideas go here, not into the current sprint. Scope is a contract.
 ## Cut from core scope (this semester)
 - Absorption kinetics as a modeled target
 - Degradation / toxicity as a modeled target (degradation enters the cost as literature indices, not a model)
-- ~~Amine blends — pure amines only for now~~ **moved INTO core scope 2026-10-15** (ma'am: final output is a ranked list of mixtures to test)
+- ~~Amine blends — pure amines only for now~~ **moved INTO core scope 2026-10-15** (supervisor: final output is a ranked list of mixtures to test)
 - Novel-amine σ-profile QM (running COSMOtherm/DFT ourselves) — restrict to covered amines only
 - Screening vs. optimization as competing framings — this project screens/ranks candidate amines, not operating-condition optimization
 - Wet-lab or process-simulation validation of top candidates

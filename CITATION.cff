@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or its lab lists, please cite it as below, and cite the original data sources listed in docs/data_sources.md."
+title: "amine-co2-uq: uncertainty-aware screening of amine mixtures for CO2 capture"
+abstract: >-
+  A calibrated aqueous-amine equilibrium model, with Monte Carlo and conformal uncertainty,
+  screens about 23,000 amine mixtures at 30 wt% total amine for cement and coal flue gas.
+  A practical stage converts regeneration energy, solvent make-up, corrosion and viscosity
+  into one running cost in USD per tonne of CO2, and produces ranked lists of mixtures for
+  laboratory testing.
+type: software
+authors:
+  - family-names: Saha
+    given-names: Mayukh
+    affiliation: "Birla Institute of Technology and Science (BITS)"
+version: 1.0.0
+date-released: 2026-11-06
+license: MIT
+repository-code: "https://github.com/frozenexplorer/uq-amine"
+keywords:
+  - carbon capture
+  - CO2 absorption
+  - amine blends
+  - piperazine
+  - vapour-liquid equilibrium
+  - uncertainty quantification
+  - conformal prediction

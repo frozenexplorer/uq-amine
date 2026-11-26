@@ -3,7 +3,7 @@ Ingest MEA and MDEA CO2-solubility (and MDEA heat-of-absorption) data from NIST 
 
 Raw files: data/raw/thermoml/<doi>.json, fetched automatically from
 https://trc.nist.gov/ThermoML/<doi>.json when missing (data/raw/ is gitignored).
-Every source is listed with its full citation in data_sources.md.
+Every source is listed with its full citation in docs/data_sources.md.
 
     MEA   Wagner et al. 2013, J. Chem. Eng. Data 58, 883-895        DOI 10.1021/je301030z
             block 1: T, m_MEA, pCO2 -> m_CO2           (low loading, headspace GC)
@@ -19,7 +19,7 @@ Every source is listed with its full citation in data_sources.md.
             block 3: 322.5 K, P, solvent mass fraction MDEA, x_CO2 -> molar enthalpy of
                      solution (kJ / mol CO2), integral heat; used for VALIDATION only
 
-Not used (documented in data_sources.md): Cheng et al. 2010 MDEA block (MDEA concentration
+Not used (documented in docs/data_sources.md): Cheng et al. 2010 MDEA block (MDEA concentration
 not recorded in the ThermoML file), Boettger 2009 / Speyer 2010 MDEA+PZ (ThermoML holds
 only densities for these papers).
 

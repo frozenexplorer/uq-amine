@@ -3,7 +3,9 @@ Fresh clone -> ranked lists and figures.
 
     smoke test -> ingest data -> calibrate the equilibrium model (MEA, MDEA, AMP, PZ, DETA, DEA, MPA) ->
     screen ~23k yellow / blue mixtures with Monte Carlo UQ -> practical stage (cost + physical
-    factors) -> figures, shortlist and the three lab lists
+    factors) -> figures, shortlist and the three lab lists -> sanity tests
+
+Run from the repository root:  python run_all.py
 
 ThermoML steps need NIST. data/interim/ is tracked, so when NIST is down those steps warn and
 the pipeline carries on with the stored tables.
@@ -46,6 +48,7 @@ STEPS = [
     ("Practical stage: cost + physical factors", "src.screening.practical", ()),
     ("Screening figures + shortlist", "src.viz.screening_plots", ()),
     ("Practical figures + lab lists", "src.viz.practical_lists", ()),
+    ("Sanity tests", "tests.test_practical", ()),
 ]
 
 

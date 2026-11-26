@@ -1,0 +1,11 @@
+# pip alternative to environment.yml (conda is the tested route). Python 3.11.
+#   python -m venv .venv
+#   .venv\Scripts\activate          (Windows)   |   source .venv/bin/activate   (macOS / Linux)
+#   pip install -r requirements.txt
+rdkit==2026.3.6
+pandas==2.3.3
+numpy==2.4.6
+scipy==1.17.1
+matplotlib==3.11.2
+python-dotenv==1.2.4
+neo4j==6.4.1

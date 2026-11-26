@@ -18,7 +18,7 @@ an explicit `unit` column and the original cell text preserved in
 `raw_text` for auditing.
 
 Two outputs, kept separate because kinetics is out of this project's
-scope per BACKLOG.md:
+scope per docs/BACKLOG.md:
     data/processed/structured/literature_blend_performance.csv
         (thermodynamic/stability metrics: loading, cyclic capacity, heat
         of absorption, regeneration efficiency/duty, corrosion, stability)

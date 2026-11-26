@@ -62,7 +62,7 @@ conda activate amine-co2-uq
 python run_all.py
 ```
 
-A full run takes about 10 minutes on a laptop. It finishes with `All steps completed.`, and the lab
+A full run takes about 5–10 minutes on a laptop. It finishes with `All steps completed.`, and the lab
 lists are then in [`reports/results/`](reports/results/).
 
 <details>

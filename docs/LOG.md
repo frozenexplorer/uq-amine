@@ -60,3 +60,6 @@ Format per session: date / shipped / blocked / next action.
 - 2026-11-06: clean-copy check of 7f49b79 passed. Two fresh clones, one as cloned and one with the local PDFs added, ran all of `run_all.py` and the 6 tests. In both, the lab lists, shortlist, checks, calibration and mixture table were byte-identical to the working repo; only the runtime field in `run_meta.json` differed.
 - Next action: lab plan with the supervisor, measuring PZ against MEA reboiler duty first; replace market-index prices with real quotes.
 
+**2026-11-27**
+- Repo tidied for outside users; no model, data or result changed. `main` is the only branch (`mixture-screening` deleted locally and on GitHub). LOG, BACKLOG and the data ledger moved to `docs/`; the ledger's broken headings fixed. Added `CITATION.cff`, `requirements.txt` (pip route, same pins) and `.env.example`. `run_all.py` now ends with the sanity tests. README rewritten: quick start, pipeline, outputs, results, validation, limitations, reproducibility.
+- Clean-clone check of fe144fc passed: no PDFs and no `.env`, `python run_all.py` finished in 378 s with all 6 tests passing, and every tracked output (lists, checks, calibration, figures) was byte-identical; only `runtime_s` in `run_meta.json` differed.

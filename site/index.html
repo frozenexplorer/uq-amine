@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amine CO₂ Capture — Ranked Mixtures for Lab Testing</title>
+<meta name="description" content="Computational screening and uncertainty-aware ranking of amine mixtures for post-combustion CO2 capture. BITS Pilani, Goa Campus, Semester 9 research project, November 2026.">
+<meta name="theme-color" content="#070d19">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070d19'/%3E%3Ccircle cx='9' cy='16' r='3' fill='%23c9d3e0'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%235cc8e0'/%3E%3Ccircle cx='23' cy='16' r='3' fill='%23c9d3e0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 2.2l6.2 11H1.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6.5v3.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></symbol>
+    <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="4.9" r=".9" fill="currentColor"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6 1.8h4M6.6 1.8v4.4L2.7 12.6a1.2 1.2 0 0 0 1 1.8h8.6a1.2 1.2 0 0 0 1-1.8L9.4 6.2V1.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M4.4 10h7.2" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6 1.5v2M10 1.5v2M6 12.5v2M10 12.5v2M1.5 6h2M1.5 10h2M12.5 6h2M12.5 10h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5s4.8-4.4 4.8-8a4.8 4.8 0 0 0-9.6 0c0 3.6 4.8 8 4.8 8z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="6.4" r="1.7" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 16 16"><path d="M2.5 3h4a1.5 1.5 0 0 1 1.5 1.5V14a1.5 1.5 0 0 0-1.5-1.5h-4zM13.5 3h-4A1.5 1.5 0 0 0 8 4.5V14a1.5 1.5 0 0 1 1.5-1.5h4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-git" viewBox="0 0 16 16"><path fill="currentColor" d="M8 .2a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7 0-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.1-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.6 7.6 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.1 0 3.1-1.9 3.8-3.6 4 .3.3.6.8.6 1.5v2.2c0 .2.1.5.6.4A8 8 0 0 0 8 .2"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="container">
+    <a class="brand" href="#top" aria-label="Back to top">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect x=".5" y=".5" width="31" height="31" rx="8" fill="#0d1524" stroke="rgba(148,170,200,.25)"/><circle cx="9" cy="16" r="3" fill="#c9d3e0"/><circle cx="16" cy="16" r="3.4" fill="#5cc8e0"/><circle cx="23" cy="16" r="3" fill="#c9d3e0"/><path d="M12 14.6h1.2M12 17.4h1.2M18.8 14.6H20M18.8 17.4H20" stroke="#c9d3e0" stroke-width="1"/></svg>
+      Amine CO₂ Capture <small>2026</small>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#glance">Findings</a></li>
+      <li><a href="#explorer">Explorer</a></li>
+      <li><a href="#analytics">Analytics</a></li>
+      <li><a href="#deta">What changed</a></li>
+      <li><a href="#uncertainty">Uncertainty</a></li>
+      <li><a href="#lab">Lab plan</a></li>
+      <li><a href="#methods">Methods</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><span></span><span></span></button>
+  </div>
+  <div class="nav-progress" id="nav-progress"></div>
+</header>
+
+<main>
+<!-- ============================================================ A. HERO -->
+<section class="hero" id="top">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Amine CO₂ Capture <span class="sep"></span> Ranked mixtures for lab testing</div>
+        <h1>Engineering Better Solvents for a Lower-Carbon Future.</h1>
+        <p class="lede">Computational screening and uncertainty-aware ranking of amine mixtures for post-combustion CO<sub>2</sub> capture.</p>
+        <ul class="hero-meta">
+          <li><svg width="14" height="14"><use href="#i-pin"/></svg>BITS Pilani, Goa Campus</li>
+          <li><svg width="14" height="14"><use href="#i-book"/></svg>Semester 9 Research Project</li>
+          <li><svg width="14" height="14"><use href="#i-cal"/></svg>November 2026</li>
+        </ul>
+        <div class="cta-row">
+          <a class="btn primary" href="#explorer">Explore the mixtures <svg><use href="#i-arrow"/></svg></a>
+          <a class="btn" href="#glance">Read the findings</a>
+        </div>
+      </div>
+      <div class="stat-panel reveal">
+        <div class="label">Viable mixtures after the practical filter</div>
+        <div class="stat-big" data-count="counts.n_practical">0</div>
+        <p class="stat-big-sub">of <span data-fmt="counts.n_screened" class="num">—</span> blends screened at 30 wt% total amine, for cement and coal flue gas</p>
+        <div class="stat-trio">
+          <div><div class="v" data-count="ui.n_combined">0</div><div class="k">ranked mixtures in the combined lab list</div></div>
+          <div><div class="v" data-count="ui.n_lab_round">0</div><div class="k">solvents proposed for the first lab round</div></div>
+          <div><div class="v">2<span class="fam-dots"><i class="dot yellow"></i><i class="dot blue"></i></span></div><div class="k">mixture families: yellow and blue</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="scroll-cue" href="#glance" aria-label="Scroll to the findings">Scroll<i></i></a>
+</section>
+
+<!-- ============================================================ B. GLANCE -->
+<section class="block" id="glance">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">01 <span class="sep"></span> Research at a glance</div>
+      <h2>PZ-rich solvents lead, by a margin smaller than the uncertainty.</h2>
+      <p>Most of the cost of amine scrubbing is the steam that strips CO<sub>2</sub> back out of the solvent. Every mixture was ranked by its running cost against the industry benchmark, 30 wt% MEA, which costs <b class="num" data-fmt="counts.mea_cost_usd_per_t" data-f="usd1">—</b> per tonne of CO<sub>2</sub> on this basis (mean of the cement and coal cases).</p>
+    </div>
+
+    <div class="glance-grid">
+      <article class="card lead-card reveal" id="g-blue"></article>
+      <article class="card reveal" id="g-yellow"></article>
+      <article class="card reveal" id="g-pz"></article>
+      <article class="card reveal" id="g-mea"></article>
+      <article class="card reveal" id="g-count"></article>
+    </div>
+
+    <h3 class="reveal" style="margin-top:56px">Why PZ-rich mixtures dominate</h3>
+    <p class="muted reveal" style="max-width:72ch">Piperazine (PZ) carries two amine groups on a compact ring. Against 30 wt% MEA, the model gives it more CO<sub>2</sub> swing per kilogram, less steam per tonne, and much slower oxidation. Small additions of a second amine change these numbers only slightly, which is why the leaders are nearly tied.</p>
+    <div class="why-grid" id="why-grid"></div>
+
+    <div class="honesty reveal">
+      <div>
+        <div class="kicker"><svg width="14" height="14"><use href="#i-cpu"/></svg> Predicted by the model</div>
+        <h4>The savings are predictions, not lab results</h4>
+        <ul>
+          <li><svg width="14" height="14" style="color:var(--accent)"><use href="#i-info"/></svg><span>Every saving, capacity and duty on this site comes from a calibrated equilibrium model and a short-cut process model, not from a pilot plant.</span></li>
+          <li><svg width="14" height="14" style="color:var(--accent)"><use href="#i-info"/></svg><span>Each saving carries a 90 % interval. For the leaders it still includes zero: the expected saving is positive, but not yet proven.</span></li>
+          <li><svg width="14" height="14" style="color:var(--accent)"><use href="#i-info"/></svg><span>Prices, and the corrosion and viscosity cost scales, are partly assumptions with ranges.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="kicker"><svg width="14" height="14"><use href="#i-flask"/></svg> Grounded in measurements</div>
+        <h4>What the model is anchored to</h4>
+        <ul>
+          <li><svg width="14" height="14" style="color:var(--good)"><use href="#i-check"/></svg><span>Published CO<sub>2</sub> loading data for MEA, MDEA, PZ, AMP, DETA, DEA and MPA, plus calorimetric heats.</span></li>
+          <li><svg width="14" height="14" style="color:var(--good)"><use href="#i-check"/></svg><span>Data sets the model never saw: Dugas (2009), Hilliard (2008) and Dash (2011).</span></li>
+          <li><svg width="14" height="14" style="color:var(--good)"><use href="#i-check"/></svg><span>Published CESAR1 : MEA energy ratios and a measured solvent loss over 400 days of operation.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ C. EXPLORER -->
+<section class="block alt" id="explorer">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">02 <span class="sep"></span> Interactive mixture explorer</div>
+      <h2>Browse the ranked lab lists.</h2>
+      <p>The three lists from the screening, loaded straight from the project's CSV files. Search by amine, filter by composition or handling, sort any column, and open a mixture for its cost breakdown and comparison with MEA.</p>
+    </div>
+
+    <div class="card explorer reveal">
+      <div class="ex-toolbar">
+        <div class="seg" role="group" aria-label="Ranking list" id="ex-list">
+          <button data-list="combined" aria-pressed="true">Combined <span class="count">100</span></button>
+          <button data-list="yellow" aria-pressed="false"><i class="dot yellow"></i>Yellow <span class="count">50</span></button>
+          <button data-list="blue" aria-pressed="false"><i class="dot blue"></i>Blue <span class="count">50</span></button>
+        </div>
+        <label class="search"><svg width="15" height="15"><use href="#i-search"/></svg><input id="ex-search" type="search" placeholder="Search amines, e.g. DEA or pyrrolidinol" aria-label="Search mixtures by amine name"></label>
+        <select class="select" id="ex-solid" aria-label="Maximum solidification temperature">
+          <option value="">Any solidification temp.</option>
+          <option value="35">Solid below ≤ 35 °C</option>
+          <option value="30">Solid below ≤ 30 °C</option>
+          <option value="25">Solid below ≤ 25 °C</option>
+        </select>
+        <label class="check"><input type="checkbox" id="ex-measured"> Measured partners only</label>
+        <label class="check"><input type="checkbox" id="ex-pick"> One per amine pair</label>
+      </div>
+      <div class="chips" id="ex-chips" aria-label="Filter by amines in the mixture"></div>
+      <div class="ex-status"><span id="ex-count">Loading…</span><span class="mobile-only">Swipe the table sideways for more columns →</span><span>Click a row for details · values: cement case for capacity and duty, mean of both cases for cost</span></div>
+      <div class="table-wrap">
+        <table class="data" id="ex-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+        <div class="empty-state" id="ex-empty" hidden>No mixture in this list matches all the filters. <button class="chip clear" id="ex-reset" style="margin-left:8px">Clear filters</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ D. ANALYTICS -->
+<section class="block" id="analytics">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">03 <span class="sep"></span> Visual analytics</div>
+      <h2>Where the saving comes from, and how sure we are of it.</h2>
+      <p>Each chart answers one question about the ranking. Hover any mark for its values.</p>
+    </div>
+
+    <div class="chart-grid">
+      <article class="card span-12 reveal">
+        <div class="card-head"><div><div class="kicker">Performance</div><h3>The leaders beat MEA on every count</h3><p>30 wt% MEA, pure PZ, and the best yellow and blue mixtures, cement case. The line marks MEA.</p></div>
+          <div class="legend" id="perf-legend"></div></div>
+        <div class="small-multiples" id="chart-perf"></div>
+      </article>
+
+      <article class="card span-7 reveal">
+        <div class="card-head"><div><div class="kicker">Cost breakdown</div><h3>Energy is most of the bill</h3><p id="cost-sub">Running cost in $ per tonne CO<sub>2</sub>, mean of cement and coal.</p></div>
+          <div class="seg" role="group" aria-label="Cost units" id="cost-mode"><button data-mode="abs" aria-pressed="true">$ / t</button><button data-mode="share" aria-pressed="false">Share</button></div></div>
+        <div class="legend" id="cost-legend" style="margin-bottom:10px"></div>
+        <div class="chart" id="chart-cost"></div>
+      </article>
+
+      <article class="card span-5 reveal">
+        <div class="card-head"><div><div class="kicker">Savings distribution</div><h3>Overlapping intervals: a near tie</h3><p>Median saving against MEA (dot) and 90 % interval (bar). Right of zero is cheaper than MEA.</p></div>
+          <div class="seg" role="group" aria-label="Family" id="forest-fam"><button data-fam="yellow" aria-pressed="true"><i class="dot yellow"></i>Yellow</button><button data-fam="blue" aria-pressed="false"><i class="dot blue"></i>Blue</button></div></div>
+        <div class="chart" id="chart-forest"></div>
+      </article>
+
+      <article class="card span-12 reveal">
+        <div class="card-head"><div><div class="kicker">Capacity vs. energy</div><h3>Every viable mixture on one map</h3><p>Cyclic capacity against reboiler duty for all <span data-fmt="counts.n_practical" class="num">—</span> mixtures that pass the practical filter, cement case. Better solvents sit bottom-right. Hover for details; click a highlighted mixture to open it.</p></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <div class="legend"><span><i class="circ" style="background:var(--blue)"></i>Blue</span><span><i class="circ" style="background:var(--yellow)"></i>Yellow</span><span><i class="dot reference"></i>Single amine</span></div>
+            <label class="check"><input type="checkbox" id="sc-cheaper"> Highlight cheaper than MEA</label>
+          </div></div>
+        <div class="chart" id="chart-scatter" style="height:460px"></div>
+      </article>
+
+      <article class="card span-12 reveal">
+        <div class="card-head"><div><div class="kicker">Sensitivity</div><h3>The lists survive their own assumptions</h3><p>Each cost assumption moved, one at a time, to the low or high end of its range. How many of each family's top 20 stay in the top 20?</p></div>
+          <div class="legend"><span><i class="circ" style="background:transparent;border:2px solid var(--text-2)"></i>Low end</span><span><i class="circ" style="background:var(--text-2)"></i>High end</span></div></div>
+        <div class="twocol" id="chart-sens"></div>
+        <div class="chart-foot"><div class="callout" id="sens-callout"><svg width="16" height="16" style="color:var(--accent)"><use href="#i-info"/></svg><span></span></div></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ E. DETA -->
+<section class="block alt" id="deta">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">04 <span class="sep"></span> The science: what changed?</div>
+      <h2>The October front-runner did not survive contact with data.</h2>
+      <p>In October the ranking leaned on structure-based estimates for partner amines, and DETA (diethylenetriamine) looked outstanding. Measured CO<sub>2</sub> loadings from Chang et al. (2013) showed that hot DETA holds on to far more CO<sub>2</sub> than estimated, so much less of it is released in the stripper.</p>
+    </div>
+
+    <div class="story">
+      <div class="steps reveal" id="deta-steps" role="group" aria-label="Story steps">
+        <button class="step" data-step="0" aria-pressed="true"><span class="n">1</span><span><h4>October model</h4><p>Structure-based estimate. No CO<sub>2</sub> data for DETA.</p></span></button>
+        <button class="step" data-step="1" aria-pressed="false"><span class="n">2</span><span><h4>Measurements</h4><p><span data-fmt="deta.n_points">84</span> loadings at 40 and 80 °C, 20–40 wt% (Chang 2013).</p></span></button>
+        <button class="step" data-step="2" aria-pressed="false"><span class="n">3</span><span><h4>Calibrated model</h4><p>Refitted to the data. Error falls about four-fold.</p></span></button>
+        <button class="step" data-step="3" aria-pressed="false"><span class="n">4</span><span><h4>Impact on the ranking</h4><p>Capacity shrinks below MEA's, and the DETA mixtures fall away.</p></span></button>
+      </div>
+
+      <div class="card reveal" style="min-width:0">
+        <div id="deta-chart-panel">
+          <div class="deta-controls">
+            <span class="lbl">Concentration</span>
+            <div class="seg" role="group" aria-label="DETA concentration" id="deta-w"><button data-w="0.2" aria-pressed="false">20 wt%</button><button data-w="0.3" aria-pressed="true">30 wt%</button><button data-w="0.4" aria-pressed="false">40 wt%</button></div>
+            <span class="lbl" style="margin-left:6px">Show</span>
+            <div class="seg" role="group" aria-label="Model shown" id="deta-model"><button data-m="old" aria-pressed="true">October model</button><button data-m="calibrated" aria-pressed="false">Calibrated</button><button data-m="both" aria-pressed="false">Both</button></div>
+            <label class="check"><input type="checkbox" id="deta-hot"> 120 °C stripper (extrapolated)</label>
+          </div>
+          <div class="legend" id="deta-legend" style="margin-bottom:8px"></div>
+          <div class="chart" id="chart-deta"></div>
+          <div class="readouts" id="deta-readouts"></div>
+        </div>
+        <div id="deta-impact-panel" hidden></div>
+      </div>
+    </div>
+
+    <p class="quote reveal">An important lesson from this research: <span>computational predictions must be validated against experimental measurements.</span></p>
+    <p class="muted reveal" style="text-align:center;max-width:70ch;margin:0 auto">The same check then corrected DEA and MPA. Their structure-based estimates were also off, and both were recalibrated on measured data before the final ranking.</p>
+    <div class="card reveal" style="margin-top:28px;max-width:900px;margin-left:auto;margin-right:auto" id="partner-table"></div>
+  </div>
+</section>
+
+<!-- ============================================================ F. UNCERTAINTY -->
+<section class="block" id="uncertainty">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">05 <span class="sep"></span> Uncertainty and model validation</div>
+      <h2>Knowing where the model could be wrong.</h2>
+      <p>The model was tested on data it was never fitted to, against published CESAR1 : MEA energy ratios, and against its own assumptions. One question stays open, and it is the most important one for the size of the saving.</p>
+    </div>
+
+    <div class="checks reveal" id="checks"></div>
+
+    <article class="card reveal" style="margin-top:16px">
+      <div class="card-head"><div><div class="kicker">Energy benchmark</div><h3>CESAR1 : MEA reboiler-duty ratio</h3><p>CESAR1 is an AMP + PZ solvent. The model's ratio against three published values. None of the three is a confirmed pilot measurement: two are simulation or techno-economic studies, and the source excerpt for the third does not say.</p></div></div>
+      <div class="chart" id="chart-bench"></div>
+    </article>
+
+    <article class="card reveal" style="margin-top:16px" id="stress-card">
+      <div class="card-head"><div><div class="kicker">Stress test · PZ heat at the stripper</div><h3>What if calorimetry, not VLE, is right?</h3>
+        <p id="stress-intro">Hilliard's calorimeter reads PZ's heat of absorption at 120 °C well above the model's value, which comes from VLE data. The gap grows with PZ's share of the amine nitrogen. Drag the slider to add that extra heat and watch the economics move.</p></div></div>
+      <div class="stress">
+        <div>
+          <div class="slider-wrap">
+            <label for="stress-slider"><span>Extra PZ heat at 120 °C</span><b id="stress-val">0 kJ/mol</b></label>
+            <input type="range" id="stress-slider" min="0" max="0" step="1" value="0" aria-describedby="stress-intro">
+            <div class="presets" id="stress-presets"></div>
+          </div>
+          <div class="kv" id="stress-kv"></div>
+          <div class="gauge" id="stress-gauge"></div>
+          <div class="verdict" id="stress-verdict"></div>
+        </div>
+        <div style="min-width:0">
+          <div class="sm-title">PZ 30 % saving against MEA, $/t</div>
+          <div class="sm-sub">central inputs · shaded: beyond what published CESAR1 : MEA ratios allow</div>
+          <div class="chart" id="chart-stress-saving"></div>
+          <div class="sm-title" style="margin-top:18px">Mixtures cheaper than MEA</div>
+          <div class="sm-sub">of <span data-fmt="counts.n_practical">—</span> that pass the practical filter</div>
+          <div class="chart" id="chart-stress-count"></div>
+        </div>
+      </div>
+      <div class="callout amber" style="margin-top:18px"><svg width="16" height="16" style="color:var(--amber)"><use href="#i-alert"/></svg><span id="stress-note"></span></div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ G. LAB -->
+<section class="block alt" id="lab">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">06 <span class="sep"></span> Recommended laboratory experiments</div>
+      <h2>Twelve solvents for the first lab round.</h2>
+      <p>The top of each list is a near tie, so the first round covers the leading chemistry rather than many near-identical proportions. Select two or more solvents to compare them side by side.</p>
+    </div>
+    <div class="lab-groups reveal" id="lab-groups"></div>
+    <div class="card compare-tray reveal" id="compare-tray"></div>
+
+    <h3 class="reveal" style="margin:56px 0 16px">What to measure next</h3>
+    <ol class="next-steps reveal" style="padding:0;margin:0">
+      <li class="first"><h4>Regeneration energy of PZ against MEA</h4><p>Settles the largest open question, the PZ heat at the stripper, and decides how much of the saving is real.</p></li>
+      <li><h4>CO<sub>2</sub> loading at 40 and 120 °C for the blue partners</h4><p>DEA, MPA and DETA have no loading data above 80 °C, so the stripper end is extrapolated.</p></li>
+      <li><h4>DETA corrosion</h4><p>Published results conflict: 5–12× MEA in one study, about equal in another. It is carried as a wide range.</p></li>
+      <li><h4>Real supplier prices for PZ, AMP, DEA and DIPA</h4><p>The cost inputs the ranking is most exposed to. Market indices disagree with each other.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================ H. METHODS -->
+<section class="block" id="methods">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">07 <span class="sep"></span> Methodology and references</div>
+      <h2>How the ranking was built.</h2>
+      <p>Everything on this page is produced by one reproducible pipeline (<span class="mono">python run_all.py</span>). The full code, data and provenance ledger are in the repository.</p>
+    </div>
+
+    <div class="pipeline reveal" id="pipeline"></div>
+
+    <div class="reveal">
+      <details class="acc"><summary>Screening <span class="sum-sub">· what was enumerated</span><svg class="chev" width="16" height="16"><use href="#i-down"/></svg></summary>
+        <div class="acc-body" id="m-screen"></div></details>
+      <details class="acc"><summary>Practical filter <span class="sum-sub">· what was removed, and what is only flagged</span><svg class="chev" width="16" height="16"><use href="#i-down"/></svg></summary>
+        <div class="acc-body" id="m-filter"></div></details>
+      <details class="acc"><summary>Cost estimation <span class="sum-sub">· one $/t scale</span><svg class="chev" width="16" height="16"><use href="#i-down"/></svg></summary>
+        <div class="acc-body" id="m-cost"></div></details>
+      <details class="acc"><summary>Model calibration <span class="sum-sub">· fitted and held-out data</span><svg class="chev" width="16" height="16"><use href="#i-down"/></svg></summary>
+        <div class="acc-body" id="m-calib"></div></details>
+      <details class="acc"><summary>Limitations <span class="sum-sub">· read before using the numbers</span><svg class="chev" width="16" height="16"><use href="#i-down"/></svg></summary>
+        <div class="acc-body" id="m-limits"></div></details>
+    </div>
+
+    <h3 class="reveal" style="margin:48px 0 8px">References</h3>
+    <p class="muted reveal" style="font-size:13.5px">Main sources used by the model and the cost stage. Every source, including those checked and rejected, is listed in <span class="mono">docs/data_sources.md</span>.</p>
+    <ol class="refs reveal" id="refs"></ol>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <div><b>Amine CO₂ Capture: Ranked Mixtures for Lab Testing</b><br>Mayukh Saha · BITS Pilani, Goa Campus · Semester 9 Research Project · November 2026</div>
+    <div style="text-align:right">Code MIT licensed · third-party data remain their authors' work<br><span id="foot-data">Data: lab lists, checks and calibration from the repository</span></div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+  <div class="drawer-head">
+    <div style="min-width:0"><div id="drawer-tags" style="display:flex;gap:6px;flex-wrap:wrap"></div><h2 class="mix-name" id="drawer-title">—</h2></div>
+    <button class="drawer-close" id="drawer-close" aria-label="Close details"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="loading-note" id="loading">Loading project data…</div>
+
+<script>
+  // Surface runtime errors on <html data-errors> (used by headless checks; harmless otherwise).
+  addEventListener("error", e => { const a = (window.__siteErrors ||= []); a.push(`${e.message} @${(e.filename || "").split("/").pop()}:${e.lineno}`); document.documentElement.dataset.errors = a.join(" | "); });
+  addEventListener("unhandledrejection", e => { const a = (window.__siteErrors ||= []); a.push(String(e.reason)); document.documentElement.dataset.errors = a.join(" | "); });
+</script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

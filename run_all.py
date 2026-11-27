@@ -48,6 +48,7 @@ STEPS = [
     ("Practical stage: cost + physical factors", "src.screening.practical", ()),
     ("Screening figures + shortlist", "src.viz.screening_plots", ()),
     ("Practical figures + lab lists", "src.viz.practical_lists", ()),
+    ("Website data (site/data)", "src.viz.site_data", ()),
     ("Sanity tests", "tests.test_practical", ()),
 ]
 

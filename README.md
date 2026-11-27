@@ -17,6 +17,7 @@ One command rebuilds every list, table and figure from the tracked data.
 
 - [Highlights](#highlights)
 - [Quick start](#quick-start)
+- [Project website](#project-website)
 - [What the pipeline does](#what-the-pipeline-does)
 - [Outputs](#outputs)
 - [Results](#results)
@@ -62,7 +63,7 @@ conda activate amine-co2-uq
 python run_all.py
 ```
 
-A full run takes about 5–10 minutes on a laptop. It finishes with `All steps completed.`, and the lab
+A full run takes about 10–15 minutes on a laptop. It finishes with `All steps completed.`, and the lab
 lists are then in [`reports/results/`](reports/results/).
 
 <details>
@@ -80,6 +81,29 @@ Use Python 3.11. Conda is the tested route.
 </details>
 
 To run the sanity tests on their own: `python -m tests.test_practical` (pytest also collects them).
+
+## Project website
+
+An interactive site in [`site/`](site/) presents the research: the findings, a mixture explorer
+over the three lab lists, cost and uncertainty charts, the DETA recalibration story, the PZ heat
+stress test, and the 12-solvent first lab round. It reads the repository's own result files, so it
+always shows the current run. It is plain HTML, CSS and JavaScript with no build step and no
+dependencies.
+
+**Online:** <https://frozenexplorer.github.io/uq-amine/> (GitHub Pages, served from the root of
+`main`; the root `index.html` forwards to `site/`, and `.nojekyll` makes Pages serve the files
+unchanged).
+
+**Locally:**
+
+```bash
+python -m http.server 8000        # from the repository root
+# then open http://localhost:8000/site/
+```
+
+It must be served over HTTP: browsers block a page opened directly from disk (`file://`) from
+reading the CSV files. `python -m src.viz.site_data` (also run by `run_all.py`) regenerates the
+site's own data in `site/data/`.
 
 ## What the pipeline does
 
@@ -109,7 +133,8 @@ prices, degradation, corrosion, viscosity, vendors ───────┤
 | 5 | Practical stage: running cost and filter | `src/screening/practical.py` |
 | 6 | Screening figures and capacity / energy shortlist | `src/viz/screening_plots.py` |
 | 7 | Practical figures and the three lab lists | `src/viz/practical_lists.py` |
-| 8 | Sanity tests | `tests/test_practical.py` |
+| 8 | Website data: mixture table, DETA curves, stress-test grid | `src/viz/site_data.py` |
+| 9 | Sanity tests | `tests/test_practical.py` |
 
 **Process model.** The rich solvent is in equilibrium at the absorber bottom (40 °C, feed CO₂ partial
 pressure) and the lean solvent at the stripper bottom (120 °C, 5 kPa). Cyclic capacity is the
@@ -134,6 +159,7 @@ dropped.
 | [`reports/results/lab_list_yellow.md`](reports/results/lab_list_yellow.md) (`.csv`) | Top 50 yellow mixtures |
 | [`reports/results/lab_list_blue.md`](reports/results/lab_list_blue.md) (`.csv`) | Top 50 blue mixtures |
 | [`reports/results/shortlist_top100.md`](reports/results/shortlist_top100.md) (`.csv`) | Top 100 on capacity and energy alone, before cost |
+| [`reports/results/first_lab_round.csv`](reports/results/first_lab_round.csv) | The 12 solvents proposed for the first lab round, with the reason for each |
 | [`reports/results/ranking_change_*.md`](reports/results/) | How the ranking moved after each recalibration |
 | [`reports/figures/`](reports/figures/) | Calibration, screening and cost figures |
 | [`data/processed/practical/checks.json`](data/processed/practical/checks.json) | Energy benchmark and sensitivity of the lists |
@@ -232,6 +258,7 @@ to avoid an MKL crash.
 ├── requirements.txt            # pip alternative
 ├── CITATION.cff                # how to cite
 ├── .env.example                # Neo4j settings template (optional)
+├── index.html, .nojekyll       # GitHub Pages entry: forwards to site/
 ├── data/
 │   ├── raw/                    # source PDFs and downloads (gitignored, optional)
 │   ├── interim/                # transcribed / downloaded measurement tables (tracked)
@@ -242,8 +269,9 @@ to avoid an MKL crash.
 │   ├── screening/              # partner pool, process model, screen, practical stage
 │   └── viz/                    # figures and lab lists
 ├── tests/                      # sanity checks
+├── site/                       # interactive project website (serve over HTTP)
 ├── reports/
-│   ├── results/                # lab lists and ranking-change notes
+│   ├── results/                # lab lists, first lab round, ranking-change notes
 │   ├── figures/                # calibration, screening, cost and checkpoint figures
 │   └── neo4j_*                 # Neo4j style and demo queries
 └── docs/

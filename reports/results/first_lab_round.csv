@@ -1,0 +1,13 @@
+order,composition,group,reason
+1,MEA 30%,reference,Benchmark
+2,PZ 30%,reference,"Benchmark, and what every PZ blend must beat"
+3,MEA 2.5% + PZ 27.5%,yellow,Best yellow
+4,MEA 10% + PZ 20%,yellow,Yellow with less PZ
+5,MDEA 5% + PZ 25%,yellow,Yellow with a meaningful MDEA share
+6,AMP 2.5% + PZ 27.5%,yellow,Best AMP yellow; close to the CESAR1 chemistry
+7,PZ 25% + DEA 5%,blue,Best blue
+8,PZ 15% + DEA 15%,blue,Blue with the least PZ of the leaders; easiest to handle
+9,PZ 25% + MPA 5%,blue,"Calibrated partner, low oxidation"
+10,PZ 25% + DIPA 5%,blue,Partner estimated: needs measuring
+11,PZ 25% + DETA 5%,blue,Settles the DETA corrosion conflict
+12,AMP 25% + 1-Methyl-3-pyrrolidinol 5%,blue,"Best capacity and energy; partner is 1-methyl-3-pyrrolidinol, price unknown"
